@@ -48,7 +48,7 @@ def table(headers: list[str], rows: list[list[str]]) -> str:
 # --------------------------------------------------------------------------- #
 
 
-def _metric_rows(metrics: dict[str, Any]) -> list[tuple[str, Any, Any, bool | None]]:
+def metric_rows(metrics: dict[str, Any]) -> list[tuple[str, Any, Any, bool | None]]:
     rows: list[tuple[str, Any, Any, bool | None]] = [
         ("Cases passed", lambda m: m["cases"], fmt_rate, True),
     ]
@@ -86,7 +86,7 @@ def _scalar(value: Any) -> float | None:
     return value
 
 
-def _delta(base: Any, cand: Any, fmt: Any, higher_is_better: bool | None) -> str:
+def delta(base: Any, cand: Any, fmt: Any, higher_is_better: bool | None) -> str:
     b, c = _scalar(base), _scalar(cand)
     if b is None or c is None:
         return ""
@@ -133,7 +133,7 @@ def _describe(run: dict[str, Any]) -> str:
 
 
 def format_run(metrics: dict[str, Any]) -> str:
-    rows = [[label, fmt(get(metrics))] for label, get, fmt, _ in _metric_rows(metrics)]
+    rows = [[label, fmt(get(metrics))] for label, get, fmt, _ in metric_rows(metrics)]
     low, high = metrics["cases_ci95"] or (None, None)
     lines = [
         f"Run {_describe(metrics['run'])}",
@@ -160,8 +160,8 @@ def format_run(metrics: dict[str, Any]) -> str:
 def format_comparison(comparison: dict[str, Any]) -> str:
     base, cand = comparison["baseline"], comparison["candidate"]
     rows = [
-        [label, fmt(get(base)), fmt(get(cand)), _delta(get(base), get(cand), fmt, better)]
-        for label, get, fmt, better in _metric_rows(cand)
+        [label, fmt(get(base)), fmt(get(cand)), delta(get(base), get(cand), fmt, better)]
+        for label, get, fmt, better in metric_rows(cand)
     ]
     categories = sorted(base["by_category"].keys() | cand["by_category"].keys())
     category_rows = [
@@ -169,7 +169,7 @@ def format_comparison(comparison: dict[str, Any]) -> str:
             cat,
             fmt_rate(base["by_category"].get(cat)),
             fmt_rate(cand["by_category"].get(cat)),
-            _delta(base["by_category"].get(cat), cand["by_category"].get(cat), fmt_rate, True),
+            delta(base["by_category"].get(cat), cand["by_category"].get(cat), fmt_rate, True),
         ]
         for cat in categories
     ]
@@ -181,7 +181,7 @@ def format_comparison(comparison: dict[str, Any]) -> str:
         "",
         table(["category", "baseline", "candidate", "change"], category_rows),
         "",
-        _verdict(comparison),
+        verdict(comparison),
     ]
 
     # Changed cases, plus cases that stayed flaky (passed some repeats, failed others).
@@ -219,7 +219,7 @@ def format_comparison(comparison: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _verdict(comparison: dict[str, Any]) -> str:
+def verdict(comparison: dict[str, Any]) -> str:
     common = comparison["common_cases"]
     if not common["count"]:
         return "The two runs have no cases in common."

@@ -155,10 +155,10 @@ def test_compare_statuses():
 
 def test_report_flags_drops_but_not_small_noise():
     all_passed, one_failed = metrics.rate(3, 3), metrics.rate(2, 3)
-    assert report._delta(all_passed, one_failed, report.fmt_rate, True).endswith("!")
-    assert not report._delta(1000.0, 1050.0, report.fmt_seconds, False).endswith("!")
-    assert report._delta(1000.0, 1200.0, report.fmt_seconds, False) == "+20%  !"
-    assert report._delta(None, 1.0, report.fmt_seconds, False) == ""
+    assert report.delta(all_passed, one_failed, report.fmt_rate, True).endswith("!")
+    assert not report.delta(1000.0, 1050.0, report.fmt_seconds, False).endswith("!")
+    assert report.delta(1000.0, 1200.0, report.fmt_seconds, False) == "+20%  !"
+    assert report.delta(None, 1.0, report.fmt_seconds, False) == ""
 
 
 def test_cli_compare_and_show(tmp_path, capsys):
