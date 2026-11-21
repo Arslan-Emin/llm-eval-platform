@@ -31,6 +31,20 @@ every LLM and tool call. The selected run or conversation is part of the URL, so
 any view can be shared as a link. With `EVALPLAT_SEED_DIR=data/sample` an empty
 database is filled from the sample data on start (used by the public demo).
 
+### Live traces
+
+```bash
+pip install -e ".[server]"
+evalplat serve                   # POST /v1/events on http://127.0.0.1:8700
+```
+
+The agent sends its events while it runs by setting
+`TRACE_HTTP_URL=http://127.0.0.1:8700/v1/events` (its `HttpExporter` queues events
+and posts them in batches from a background thread). Live events show up in the
+dashboard under the source `live`. Posting an event twice is harmless, so clients
+can retry. Set `EVALPLAT_INGEST_TOKEN` to require `Authorization: Bearer <token>`.
+The server binds to localhost and is not part of the public demo.
+
 ### Notes
 
 Re-running `ingest` is safe: runs and events that are already stored are skipped.
