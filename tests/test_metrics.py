@@ -55,9 +55,10 @@ def test_fisher_baseline_to_fix_1_is_not_significant():
 def test_resolve_run(sample_conn):
     assert metrics.resolve_run(sample_conn, "1")["name"].endswith("_baseline")
     assert metrics.resolve_run(sample_conn, "baseline")["id"] == 1  # part of the name
-    assert metrics.resolve_run(sample_conn, "20261121")["id"] == 4
-    assert metrics.resolve_run(sample_conn, "latest")["id"] == 4
-    assert metrics.resolve_run(sample_conn, "previous")["id"] == 3
+    assert metrics.resolve_run(sample_conn, "152221")["id"] == 4
+    assert metrics.resolve_run(sample_conn, "v4-pro")["id"] == 5
+    assert metrics.resolve_run(sample_conn, "latest")["id"] == 6
+    assert metrics.resolve_run(sample_conn, "previous")["id"] == 5
     with pytest.raises(metrics.RunNotFound, match="several runs"):
         metrics.resolve_run(sample_conn, "20261119")
     with pytest.raises(metrics.RunNotFound):
@@ -85,9 +86,9 @@ def test_metrics_agree_with_the_summary_written_by_the_eval_runner(sample_conn):
         assert m["latency_ms"]["turn_avg"] / 1000 == pytest.approx(
             summary["avg_turn_latency_s"], abs=0.005
         )
-        assert (
-            m["tools"]["update_fields"]["failed"] == summary["field_updates_rejected_by_validation"]
-        )
+        assert m["tools"]["update_fields"]["failed"] == summary[
+            "field_updates_rejected_by_validation"
+        ]
 
 
 def test_latency_percentiles_match_the_agent_projects_trace_summary(sample_conn):
@@ -175,6 +176,7 @@ def test_cli_compare_and_show(tmp_path, capsys):
     assert "95% confidence interval for the pass rate: 95.9% - 100.0%" in capsys.readouterr().out
 
     assert main(["--db", db, "runs", "--json"]) == 0
-    assert len(json.loads(capsys.readouterr().out)) == 4
+    assert len(json.loads(capsys.readouterr().out)) == 6
 
     assert main(["--db", db, "show", "nope"]) == 2
+

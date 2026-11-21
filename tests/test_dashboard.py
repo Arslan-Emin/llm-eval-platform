@@ -68,7 +68,7 @@ def test_compare_page_reports_significance(sample_db):
 
 def test_traces_page(sample_db):
     app = run("page_traces")
-    assert "170 conversations" in app.caption[0].value
+    assert "350 conversations" in app.caption[0].value
 
 
 def test_conversation_page(sample_db):

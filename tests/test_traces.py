@@ -30,9 +30,9 @@ def test_conversations_are_joined_to_eval_cases(sample_conn):
 
 
 def test_conversation_ids(sample_conn):
-    # 168 eval conversations + 2 from the app's own traces. The first two runs were
+    # 348 eval conversations + 2 from the app's own traces. The first two runs were
     # recorded before the agent had tracing and carry no conversation ids at all.
-    assert len(traces.conversation_ids(sample_conn)) == 170
+    assert len(traces.conversation_ids(sample_conn)) == 350
     untraced = sample_conn.execute(
         "SELECT count(*) FROM case_results WHERE conversation_id IS NULL"
     ).fetchone()[0]
