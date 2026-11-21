@@ -17,6 +17,22 @@ evalplat show latest             # metrics of one run
 evalplat compare baseline latest # candidate vs baseline, case by case (add --json for tooling)
 ```
 
+### Dashboard
+
+```bash
+pip install -e ".[dashboard]"
+streamlit run streamlit_app.py   # reads evalplat.db (or $EVALPLAT_DB)
+```
+
+Pages: run history with pass-rate (95% confidence band), cost and latency trends;
+one run (categories, check types, failed conversations with their transcripts); a
+comparison of two runs; trace sources; and one conversation with a timeline of
+every LLM and tool call. The selected run or conversation is part of the URL, so
+any view can be shared as a link. With `EVALPLAT_SEED_DIR=data/sample` an empty
+database is filled from the sample data on start (used by the public demo).
+
+### Notes
+
 Re-running `ingest` is safe: runs and events that are already stored are skipped.
 Runs can be referred to by id, name, a unique part of the name, `latest` or `previous`.
 
@@ -32,7 +48,7 @@ Requires Python 3.11+.
 ```bash
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev,dashboard]"
 pytest
 ruff check . && ruff format --check .
 ```
