@@ -79,13 +79,13 @@ def test_agreement_leaves_not_applicable_out_of_the_score(conn):
     calibration.build_label_queue(conn, size=60)
     verdict = verdicts(conn)
     entries = calibration.queue(conn, "h")
-    fails = [e for e in entries if verdict[e["prompt_hash"]] == "fail"][:3]
+    fails = [e for e in entries if verdict[e["prompt_hash"]] == "fail"][:2]
     passes = [e for e in entries if verdict[e["prompt_hash"]] == "pass"][:3]
     calibration.save_label(conn, fails[0], "fail", labeler="h")  # agree
     calibration.save_label(conn, fails[1], "pass", labeler="h")  # judge too strict
-    calibration.save_label(conn, fails[2], "not_applicable", labeler="h")
-    calibration.save_label(conn, passes[0], "pass", labeler="h")  # agree
-    calibration.save_label(conn, passes[1], "fail", labeler="h")  # judge missed it
+    calibration.save_label(conn, passes[0], "not_applicable", labeler="h")
+    calibration.save_label(conn, passes[1], "pass", labeler="h")  # agree
+    calibration.save_label(conn, passes[2], "fail", labeler="h")  # judge missed it
 
     overall = calibration.agreement(conn, labeler="h")["overall"]
     assert (overall["labeled"], overall["scored"], overall["not_applicable"]) == (5, 4, 1)

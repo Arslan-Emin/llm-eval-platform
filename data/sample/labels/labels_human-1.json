@@ -1,0 +1,604 @@
+{
+ "labels": [
+  {
+   "prompt_hash": "96498daf9c660f5206eae4c085f72088a025347dd2251e7d4c0fae8f967d5a21",
+   "rubric": "confirmation_summary",
+   "conversation_id": "973fb12a8d844b90b96c385c1e62e24c",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T17:53:20+00:00"
+  },
+  {
+   "prompt_hash": "3a4627f2ea441d1c158793ae2f2c81372cc2d8b2a24ece5963f83b81ae66fe77",
+   "rubric": "confirmation_summary",
+   "conversation_id": "cba8d82b95a945e4859b4f2e06941267",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T17:53:32+00:00"
+  },
+  {
+   "prompt_hash": "c3939be035589b144220fe98d1a5a065eaaf8e4a24c4bae55b2cb825abd2a3c4",
+   "rubric": "confirmation_summary",
+   "conversation_id": "6cb17acff28a475d9333bd0ad9d1c325",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T17:53:56+00:00"
+  },
+  {
+   "prompt_hash": "a76eb15d2969f6605a032352d8a7c2ae4d7796d40f8d96946f0cb2447ef52b86",
+   "rubric": "confirmation_summary",
+   "conversation_id": "99dd4655328247f1a54abf70fb4905c7",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:41:20+00:00"
+  },
+  {
+   "prompt_hash": "00e3bd00fed56fccd237080ef9bb2552c92bb96687efcecc5520fdbcfd5793eb",
+   "rubric": "confirmation_summary",
+   "conversation_id": "e42212d2d17c4cee9044a3713fd953a0",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:41:20+00:00"
+  },
+  {
+   "prompt_hash": "91cc2b047f9b03e60a5c267251a1d35b24702a34a54b394cbe7da0d1b171e747",
+   "rubric": "claims_match_actions",
+   "conversation_id": "0a0b5b581da84e19a0c244d435c6588f",
+   "turn_index": 0,
+   "label": "fail",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T17:58:51+00:00"
+  },
+  {
+   "prompt_hash": "9873a6ae98e4fbb6115577939eb48066ff121c9b69e47e84551c343b12ff15fd",
+   "rubric": "claims_match_actions",
+   "conversation_id": "c501325b53c642f0b9a7cad2144e86ed",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:03:35+00:00"
+  },
+  {
+   "prompt_hash": "3e5f61f12bee3ca4951aeec04ba4a890c77f3d039649f653545c859f68ce8aa0",
+   "rubric": "claims_match_actions",
+   "conversation_id": "c1378083717546f4b03dad3356949d25",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:03:47+00:00"
+  },
+  {
+   "prompt_hash": "1c6e3b4f1c84a4760d0846b8280047de5455412120dc88695c52482cd79b60e4",
+   "rubric": "claims_match_actions",
+   "conversation_id": "c9d51f34bfd5484e9c59aba9164eaf7f",
+   "turn_index": 1,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:04:09+00:00"
+  },
+  {
+   "prompt_hash": "fed6260e83a6c235820e296fad2b27d0d8df71cb95f97704e84b0f7a81a5349a",
+   "rubric": "claims_match_actions",
+   "conversation_id": "20543191e1cf4d509c30c1c989212cb9",
+   "turn_index": 1,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:05:46+00:00"
+  },
+  {
+   "prompt_hash": "c6d33cb5f9103d5f337934bca6b6d0e839722fc6f66f014f2c675ae052a733c9",
+   "rubric": "confirmation_summary",
+   "conversation_id": "f2f98fd6ac77436a8434546f37fb75a6",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:06:00+00:00"
+  },
+  {
+   "prompt_hash": "114e522ccd28df8e52ea4c9d75eb925be899a879b1f9fc2f0ae12cb99e177ac4",
+   "rubric": "grounded_answer",
+   "conversation_id": "4bf0b9522b2c45c09aecf3817c2cf172",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:07:00+00:00"
+  },
+  {
+   "prompt_hash": "1457033ecb44b70a668fe72b382301bd99c92a37f7b40df149ff874b665acce5",
+   "rubric": "claims_match_actions",
+   "conversation_id": "2e1e00ed32a543dea2392243ac9e267b",
+   "turn_index": 1,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:07:16+00:00"
+  },
+  {
+   "prompt_hash": "9530885ef2f530d8fc0b50ec5daf3874b0af22772d2c17533a56eb4856ef3dca",
+   "rubric": "confirmation_summary",
+   "conversation_id": "cba8d82b95a945e4859b4f2e06941267",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:41:20+00:00"
+  },
+  {
+   "prompt_hash": "beef87bf5b1d93315a7341b7d0dd03853ed771b6e7ee9367296a4656ca13186e",
+   "rubric": "confirmation_summary",
+   "conversation_id": "0ab7c05d7669464a91ab96e3c069e729",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:07:42+00:00"
+  },
+  {
+   "prompt_hash": "140200b0a2e7f2264d23c57fe40d6dd09a7937b242ea6ee5c1aa2544b197eba7",
+   "rubric": "claims_match_actions",
+   "conversation_id": "4f9b74ea391342b4906c36e208afe354",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:08:13+00:00"
+  },
+  {
+   "prompt_hash": "817d6f6965fd2d583dde2e124dccd45947686ea7e3f942611347036e546cb01f",
+   "rubric": "grounded_answer",
+   "conversation_id": "bbc08e7a9ff34761ad648ffa873e73cb",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:08:24+00:00"
+  },
+  {
+   "prompt_hash": "e1de6b12a92a3e7899d7df4b0a46efbb3da72fdeb9a7ebf3ccee941f0932344d",
+   "rubric": "grounded_answer",
+   "conversation_id": "54c314cdf70b4db798d52cb5003457e0",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:08:42+00:00"
+  },
+  {
+   "prompt_hash": "38983ab9b0abc0e2ba035011c8be5f7e8934fa68f1a3add4bbac5b86c7e95ed5",
+   "rubric": "claims_match_actions",
+   "conversation_id": "95b96728686949f193cbf1d8ebaa9648",
+   "turn_index": 2,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:08:54+00:00"
+  },
+  {
+   "prompt_hash": "28ead3e9985eee02dabd01b45bacd1a5178e297aa1450349b37404b90a230aa8",
+   "rubric": "claims_match_actions",
+   "conversation_id": "24e0d332199f408da3fb303d6ee35098",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:10:13+00:00"
+  },
+  {
+   "prompt_hash": "429462c10bb3bd5001a7ee77d9dd8e049ddb58ae3db242167115ae4dbec36254",
+   "rubric": "confirmation_summary",
+   "conversation_id": "2c3fe8a9912e426780aafcb5d9798512",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:10:24+00:00"
+  },
+  {
+   "prompt_hash": "128b4adc016ebb13e105f0776cfb9127307b70d6a64a746245dac98bc75079ba",
+   "rubric": "confirmation_summary",
+   "conversation_id": "5cbb031426784b91b54d9e8f39162233",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:10:33+00:00"
+  },
+  {
+   "prompt_hash": "c0fc44168cf3ac6e6d4f83c92ab012343acc069eec4d5be5da793f0c3fadefcc",
+   "rubric": "claims_match_actions",
+   "conversation_id": "e9445e5006ba40489b089bd0e86cda4f",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:10:55+00:00"
+  },
+  {
+   "prompt_hash": "489da1fa1d2ed42ea654e14c61b9fc82d3e6484bfebc1e394b9b14c1c2c5998a",
+   "rubric": "grounded_answer",
+   "conversation_id": "9c6c53d10e1a4a9bad9f930690109a5e",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:11:06+00:00"
+  },
+  {
+   "prompt_hash": "1a7e6006c1df9873123eb82d86bf2aff8cbefd6ebae6b9084f0788a04efc48f4",
+   "rubric": "claims_match_actions",
+   "conversation_id": "f4dff2d8d02d40eba80cab860f11c779",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:11:15+00:00"
+  },
+  {
+   "prompt_hash": "d82c8c48e88b9757d29dc8435189d9a9b62ccb762ce4e8d3849dbfc6fb907a07",
+   "rubric": "confirmation_summary",
+   "conversation_id": "e9445e5006ba40489b089bd0e86cda4f",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:11:21+00:00"
+  },
+  {
+   "prompt_hash": "96a775d10794d9d7bb2d8330c967a584151736ea6095d5d8b894b73c2dfbd70b",
+   "rubric": "confirmation_summary",
+   "conversation_id": "781e7b57d6d1491babb65a23ce7eea5c",
+   "turn_index": 1,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:12:42+00:00"
+  },
+  {
+   "prompt_hash": "c242aaaba62cc60816d8dc4a5aed6f47990a5693d70983d2ccac277048c1285b",
+   "rubric": "grounded_answer",
+   "conversation_id": "4588af1198494d77b70881b94edce2bb",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:17:28+00:00"
+  },
+  {
+   "prompt_hash": "2bd92946b2c61de3424a60790a82609dcd40f6177fcd33ee53c11cae5c6cf6cf",
+   "rubric": "confirmation_summary",
+   "conversation_id": "206a01f948f741cf88e11071b65b469f",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:18:46+00:00"
+  },
+  {
+   "prompt_hash": "fee822be38855dbb10f0a98c4df026a97623852ea91b06f3b01f016944e4790b",
+   "rubric": "grounded_answer",
+   "conversation_id": "fca22c6bc6974ba59929d54afa9dd9ce",
+   "turn_index": 0,
+   "label": "pass",
+   "note": "Kiril harfli 'телефон' karışmış ama doğru bi cevap",
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:20:08+00:00"
+  },
+  {
+   "prompt_hash": "5c12e10c65aa9e7c8a11f203b5b159db82c1cdac92c0402ecf90023eb6c21938",
+   "rubric": "claims_match_actions",
+   "conversation_id": "654291b0fbf544008a205e6b83cef240",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:20:16+00:00"
+  },
+  {
+   "prompt_hash": "213cbaba3b1c77cde3a90ccb67188aca138b3327363e058f79189f193b53cb87",
+   "rubric": "grounded_answer",
+   "conversation_id": "2f7c0334b1574d02b222c2c7f222192d",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:20:23+00:00"
+  },
+  {
+   "prompt_hash": "79af9522eb7e84a89433ad1b5e1d752020d0770e4bcef8746fec728afd103090",
+   "rubric": "confirmation_summary",
+   "conversation_id": "f38c710d5af8434b9159331f52f3608c",
+   "turn_index": 4,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:21:30+00:00"
+  },
+  {
+   "prompt_hash": "373d570c520d991bee4098c5d8963945cfcf4679ed2439320955b9055363ec7d",
+   "rubric": "grounded_answer",
+   "conversation_id": "381c13b9fdda44f080191d176bf7bef1",
+   "turn_index": 1,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:21:47+00:00"
+  },
+  {
+   "prompt_hash": "4af26b7f4f04cfc505d0bf6635d1a5e432f9eadb4c7a5b526a0796bd16a99884",
+   "rubric": "confirmation_summary",
+   "conversation_id": "2269fdbff5e0413d8c8e4cbd89ace7e4",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:22:04+00:00"
+  },
+  {
+   "prompt_hash": "567b214530ab704c679ba72618a5f091b4b7fabbc4276fd540767f2bc8d24fb9",
+   "rubric": "claims_match_actions",
+   "conversation_id": "3adff907f2144875955ae3568eb22f5d",
+   "turn_index": 3,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:22:23+00:00"
+  },
+  {
+   "prompt_hash": "54128931096a6205170e8336246b5f5b938be9050e6c1fad7d5a438497ecdbc1",
+   "rubric": "confirmation_summary",
+   "conversation_id": "3adff907f2144875955ae3568eb22f5d",
+   "turn_index": 2,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:22:48+00:00"
+  },
+  {
+   "prompt_hash": "f18e91adb74097722af236b1903500a357d7882c1f3298796a13430784afc302",
+   "rubric": "grounded_answer",
+   "conversation_id": "f69effb347e24ba0b0ba9c6e2358b8aa",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:22:57+00:00"
+  },
+  {
+   "prompt_hash": "8489727c0a987ff3ca471f42b9218d8473e631be537ae65de1344f0c788c747c",
+   "rubric": "confirmation_summary",
+   "conversation_id": "c2514f3f1e344d1abd9838fac315599e",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:23:02+00:00"
+  },
+  {
+   "prompt_hash": "7112db05623f8a9534315b987672571149525bc16362d49a13fbad5aee6be347",
+   "rubric": "confirmation_summary",
+   "conversation_id": "6cb17acff28a475d9333bd0ad9d1c325",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:23:19+00:00"
+  },
+  {
+   "prompt_hash": "c51970eb3e93708203edfa05d295d063c8b57f8fb54982c804318167526a4d10",
+   "rubric": "confirmation_summary",
+   "conversation_id": "0a0b5b581da84e19a0c244d435c6588f",
+   "turn_index": 3,
+   "label": "pass",
+   "note": "Bu tur doğru; asıl hata önceki turda (tarih kaydedilmeden 'ekleyeyim' dedi). Kullanıcı iki kez onaylamak zorunda kaldı.\"",
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:29:12+00:00"
+  },
+  {
+   "prompt_hash": "9b35407cb08efbaa8503bfe38e52db2185c67ab316088a40c8aec5fbd30a58af",
+   "rubric": "claims_match_actions",
+   "conversation_id": "c9d51f34bfd5484e9c59aba9164eaf7f",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:29:19+00:00"
+  },
+  {
+   "prompt_hash": "18cbe75be397391f35f34c8b6ce2a449c8246aa8f7aa701572b462231a2bb0fe",
+   "rubric": "confirmation_summary",
+   "conversation_id": "1012dcf9191841dfab437d3efedd5120",
+   "turn_index": 1,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:29:35+00:00"
+  },
+  {
+   "prompt_hash": "1dcfca943d23b1810e3b8ab387b2ba499a439ea3234c076f0410ea8ecbf06b71",
+   "rubric": "grounded_answer",
+   "conversation_id": "2c20cafc9f88428db8d9bc2168d9ff68",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:29:44+00:00"
+  },
+  {
+   "prompt_hash": "24e4841ed18341309c39fad9299a9d6b2512c053cf10b23e653c057745543ca8",
+   "rubric": "claims_match_actions",
+   "conversation_id": "870d8f8dbef5409aa05e73363769a300",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:29:55+00:00"
+  },
+  {
+   "prompt_hash": "45df6b52f1396520657ee1755afa56351e8a03f650431c67f834ad7539f050de",
+   "rubric": "claims_match_actions",
+   "conversation_id": "8573c78251dd4bdfb71fc40820ebf3e5",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:30:33+00:00"
+  },
+  {
+   "prompt_hash": "a1806ec0340454eb7e74c2cc7e8c041957468c176626db01f00740678950d80b",
+   "rubric": "grounded_answer",
+   "conversation_id": "4f36b9016cb24ace9bfb1ef360a3a0cd",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:30:48+00:00"
+  },
+  {
+   "prompt_hash": "fb3e5ea0c11310482921b14611d830bd614c61078c5f6798afa8b8b5a18e9897",
+   "rubric": "claims_match_actions",
+   "conversation_id": "381c13b9fdda44f080191d176bf7bef1",
+   "turn_index": 2,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:31:10+00:00"
+  },
+  {
+   "prompt_hash": "e66da3dee9b590407b52289e8af1ce254edd6fdc73f58d9528be9dd64aaec3d7",
+   "rubric": "claims_match_actions",
+   "conversation_id": "881c0d0a909047f0ac198646435b3cbc",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:32:36+00:00"
+  },
+  {
+   "prompt_hash": "2b08869a508eec437e9c589b7ad7bc7b9938e9b739c944b7b901a72de7d43e02",
+   "rubric": "grounded_answer",
+   "conversation_id": "72238d126d6c4cd3929dfd10f8b57d38",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:32:52+00:00"
+  },
+  {
+   "prompt_hash": "580c4ac360a831257da7d298f5f0c06214aa68a890f1eb132ee41a0c4ac4fdd4",
+   "rubric": "confirmation_summary",
+   "conversation_id": "e5d53bd0a93544efb42cf16bb5bcfe70",
+   "turn_index": 1,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:33:01+00:00"
+  },
+  {
+   "prompt_hash": "b94075f6facff8a621c5c132260f2c73f709b2cff933b66b30392314fd64a934",
+   "rubric": "grounded_answer",
+   "conversation_id": "d57b419fbb284e96890537ffd11a510a",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:33:20+00:00"
+  },
+  {
+   "prompt_hash": "f14312de3b397b9ec95d39efde00110d08f723ff0093cd5acef43526061e2527",
+   "rubric": "grounded_answer",
+   "conversation_id": "074a5496502d42de9a89e16c1a5a633f",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:33:30+00:00"
+  },
+  {
+   "prompt_hash": "2668363246f3d61102ec382f3fcc90256f28cf61e3922cf916e16bdee5f19ab6",
+   "rubric": "grounded_answer",
+   "conversation_id": "f1691c1af63d416884ad3a7da0f2f2b4",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:33:38+00:00"
+  },
+  {
+   "prompt_hash": "d2179ca488ab87533faf253896317ac74e61bd96f39a4e878dc9b79de403a099",
+   "rubric": "grounded_answer",
+   "conversation_id": "6ba0a99a91704ed18231a97c5cc1907b",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:33:44+00:00"
+  },
+  {
+   "prompt_hash": "13f22fce9a4def372011a4b71cc9ea1a121dea36a1f5725821bc6245366f059d",
+   "rubric": "confirmation_summary",
+   "conversation_id": "d9f9c2fdc1bb42d594f714350ab45630",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:33:58+00:00"
+  },
+  {
+   "prompt_hash": "459486a6b2943d185d9adabb22dfb269680d3efe0ca06723dfe53e07c725bbfb",
+   "rubric": "claims_match_actions",
+   "conversation_id": "0a0b5b581da84e19a0c244d435c6588f",
+   "turn_index": 2,
+   "label": "fail",
+   "note": "Said 'şimdi ekleyeyim' but the date was not saved in this turn (relabeled after review)",
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:41:20+00:00"
+  },
+  {
+   "prompt_hash": "c6ab977709e806b3bffc80e7a2c362cb6aec67569482d1fa84de51a479567c5a",
+   "rubric": "confirmation_summary",
+   "conversation_id": "83b5ad71b619407ea8ab7cb9c6ee14b4",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:34:59+00:00"
+  },
+  {
+   "prompt_hash": "49c0d549be0a175db7d57b095d1592deb77153da1cab36285f38767cfb382e2b",
+   "rubric": "confirmation_summary",
+   "conversation_id": "81a19a8a25fa463fa380b3add69a669a",
+   "turn_index": 1,
+   "label": "not_applicable",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:35:05+00:00"
+  },
+  {
+   "prompt_hash": "64f06e1fb9b4f4b923ccdcfa8ca89cb4df04882c921a9a9d1d7921ce918a9fb5",
+   "rubric": "confirmation_summary",
+   "conversation_id": "71ba251d2b504f66be0d9a12982ea6c0",
+   "turn_index": 0,
+   "label": "pass",
+   "note": null,
+   "labeler": "human-1",
+   "created_at": "2026-11-21T18:35:15+00:00"
+  }
+ ]
+}

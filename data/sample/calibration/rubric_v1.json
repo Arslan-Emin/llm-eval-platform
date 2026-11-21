@@ -1,0 +1,136 @@
+{
+ "description": "Judge vs human labels with rubric confirmation_summary v1 (before the fix).",
+ "judge_model": "deepseek-v4-pro",
+ "labeler": "human-1",
+ "agreement": {
+  "overall": {
+   "labeled": 60,
+   "not_applicable": 9,
+   "scored": 51,
+   "agree": 51,
+   "accuracy": 1.0,
+   "kappa": 1.0,
+   "confusion": {
+    "judge_pass_human_pass": 49,
+    "judge_pass_human_fail": 0,
+    "judge_fail_human_pass": 0,
+    "judge_fail_human_fail": 2
+   },
+   "fail_precision": 1.0,
+   "fail_recall": 1.0
+  },
+  "rubrics": {
+   "claims_match_actions": {
+    "labeled": 19,
+    "not_applicable": 0,
+    "scored": 19,
+    "agree": 19,
+    "accuracy": 1.0,
+    "kappa": 1.0,
+    "confusion": {
+     "judge_pass_human_pass": 17,
+     "judge_pass_human_fail": 0,
+     "judge_fail_human_pass": 0,
+     "judge_fail_human_fail": 2
+    },
+    "fail_precision": 1.0,
+    "fail_recall": 1.0
+   },
+   "confirmation_summary": {
+    "labeled": 25,
+    "not_applicable": 9,
+    "scored": 16,
+    "agree": 16,
+    "accuracy": 1.0,
+    "kappa": null,
+    "confusion": {
+     "judge_pass_human_pass": 16,
+     "judge_pass_human_fail": 0,
+     "judge_fail_human_pass": 0,
+     "judge_fail_human_fail": 0
+    },
+    "fail_precision": null,
+    "fail_recall": null
+   },
+   "grounded_answer": {
+    "labeled": 16,
+    "not_applicable": 0,
+    "scored": 16,
+    "agree": 16,
+    "accuracy": 1.0,
+    "kappa": null,
+    "confusion": {
+     "judge_pass_human_pass": 16,
+     "judge_pass_human_fail": 0,
+     "judge_fail_human_pass": 0,
+     "judge_fail_human_fail": 0
+    },
+    "fail_precision": null,
+    "fail_recall": null
+   }
+  }
+ },
+ "not_applicable": 9,
+ "runs": {
+  "20261121-152221_deepseek-flash": {
+   "rubrics": {
+    "claims_match_actions": {
+     "passed": 198,
+     "total": 198,
+     "rate": 1.0
+    },
+    "confirmation_summary": {
+     "passed": 69,
+     "total": 72,
+     "rate": 0.9583333333333334
+    },
+    "grounded_answer": {
+     "passed": 24,
+     "total": 24,
+     "rate": 1.0
+    }
+   },
+   "judged": 294
+  },
+  "20261121-165646_deepseek-v4-pro": {
+   "rubrics": {
+    "claims_match_actions": {
+     "passed": 196,
+     "total": 198,
+     "rate": 0.98989898989899
+    },
+    "confirmation_summary": {
+     "passed": 69,
+     "total": 72,
+     "rate": 0.9583333333333334
+    },
+    "grounded_answer": {
+     "passed": 24,
+     "total": 24,
+     "rate": 1.0
+    }
+   },
+   "judged": 294
+  },
+  "20261121-165926_deepseek-flash": {
+   "rubrics": {
+    "claims_match_actions": {
+     "passed": 198,
+     "total": 198,
+     "rate": 1.0
+    },
+    "confirmation_summary": {
+     "passed": 69,
+     "total": 72,
+     "rate": 0.9583333333333334
+    },
+    "grounded_answer": {
+     "passed": 24,
+     "total": 24,
+     "rate": 1.0
+    }
+   },
+   "judged": 294
+  }
+ }
+}
