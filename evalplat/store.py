@@ -133,6 +133,33 @@ MIGRATIONS: list[str] = [
     CREATE INDEX judgments_conversation ON judgments (conversation_id, turn_index);
     CREATE INDEX judgments_case ON judgments (case_result_id);
     """,
+    # 3: human labels for calibrating the judge
+    """
+    -- The replies picked for labeling, in the order they are shown.
+    CREATE TABLE label_queue (
+        prompt_hash      TEXT PRIMARY KEY,  -- the judge question being labeled
+        rubric           TEXT NOT NULL,
+        conversation_id  TEXT NOT NULL,
+        turn_index       INTEGER NOT NULL,
+        position         INTEGER NOT NULL,
+        added_at         TEXT NOT NULL
+    );
+
+    -- A human's answer to the same question the judge got. Keyed by prompt hash, so
+    -- it is compared with the judge verdict for exactly that prompt.
+    CREATE TABLE labels (
+        id               INTEGER PRIMARY KEY,
+        prompt_hash      TEXT NOT NULL,
+        rubric           TEXT NOT NULL,
+        conversation_id  TEXT NOT NULL,
+        turn_index       INTEGER NOT NULL,
+        label            TEXT NOT NULL CHECK (label IN ('pass', 'fail', 'not_applicable')),
+        note             TEXT,
+        labeler          TEXT NOT NULL,
+        created_at       TEXT NOT NULL,
+        UNIQUE (prompt_hash, labeler)
+    );
+    """,
 ]
 
 SCHEMA_VERSION = len(MIGRATIONS)

@@ -155,6 +155,35 @@ def cmd_judgments(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_label_sample(args: argparse.Namespace) -> int:
+    from evalplat import calibration
+
+    conn = store.connect(args.db)
+    count = calibration.build_label_queue(conn, size=args.size, seed=args.seed)
+    print(f"Label queue: {count} replies. Label them on the dashboard's 'Calibrate judge' page.")
+    return 0
+
+
+def cmd_calibration(args: argparse.Namespace) -> int:
+    from evalplat import calibration
+
+    conn = store.connect(args.db)
+    if args.export:
+        path = Path(args.export)
+        if path.is_dir():
+            path = path / f"labels_{args.labeler or 'all'}.json"
+        data = calibration.export_labels(conn, args.labeler)
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"Wrote {len(data['labels'])} labels to {path}")
+        return 0
+    result = calibration.agreement(conn, labeler=args.labeler)
+    if args.json:
+        _print_json(result)
+    else:
+        print(report.format_calibration(result))
+    return 0
+
+
 def _load_dotenv() -> None:
     try:
         from dotenv import load_dotenv
@@ -231,6 +260,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--export", metavar="PATH", help="write the verdicts to a file (or folder) for ingest"
     )
     judgments.set_defaults(func=cmd_judgments)
+
+    label_sample = commands.add_parser(
+        "label-sample", help="pick judge verdicts for a human to label"
+    )
+    label_sample.add_argument("--size", type=int, default=60)
+    label_sample.add_argument("--seed", type=int, default=7, help="same seed, same sample")
+    label_sample.set_defaults(func=cmd_label_sample)
+
+    calibration = commands.add_parser("calibration", help="judge vs human labels")
+    calibration.add_argument("--labeler", help="only this labeler's labels")
+    calibration.add_argument("--json", action="store_true", help="print JSON instead of text")
+    calibration.add_argument(
+        "--export", metavar="PATH", help="write the labels to a file or folder"
+    )
+    calibration.set_defaults(func=cmd_calibration)
 
     serve = commands.add_parser("serve", help="receive trace events over HTTP (POST /v1/events)")
     serve.add_argument(

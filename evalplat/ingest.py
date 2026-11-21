@@ -261,10 +261,22 @@ def ingest_trace_file(conn: sqlite3.Connection, path: Path) -> FileReport:
 
 JUDGMENTS_PREFIX = "judgments_"
 JUDGMENT_COLUMNS = (
-    "conversation_id", "turn_index", "rubric", "rubric_version", "prompt_hash", "judge_model",
-    "verdict", "reason", "input_tokens", "cached_input_tokens", "output_tokens", "cost_usd",
-    "latency_ms", "cached", "created_at",
-)  # fmt: skip
+    "conversation_id",
+    "turn_index",
+    "rubric",
+    "rubric_version",
+    "prompt_hash",
+    "judge_model",
+    "verdict",
+    "reason",
+    "input_tokens",
+    "cached_input_tokens",
+    "output_tokens",
+    "cost_usd",
+    "latency_ms",
+    "cached",
+    "created_at",
+)
 
 
 def ingest_judgments(
@@ -298,6 +310,43 @@ def ingest_judgments(
     return report
 
 
+LABELS_PREFIX = "labels_"
+LABEL_COLUMNS = (
+    "prompt_hash",
+    "rubric",
+    "conversation_id",
+    "turn_index",
+    "label",
+    "note",
+    "labeler",
+    "created_at",
+)
+
+
+def ingest_labels(conn: sqlite3.Connection, labels: list[Any], *, source_path: str) -> FileReport:
+    """Load exported human labels (`evalplat calibration --export`)."""
+    report = FileReport(source_path, "labels")
+    with transaction(conn):
+        for row in labels:
+            if not (
+                isinstance(row, dict)
+                and row.get("label") in {"pass", "fail", "not_applicable"}
+                and all(row.get(k) is not None for k in ("prompt_hash", "rubric", "labeler"))
+            ):
+                report.invalid += 1
+                continue
+            cursor = conn.execute(
+                f"INSERT OR IGNORE INTO labels ({', '.join(LABEL_COLUMNS)})"
+                f" VALUES ({', '.join('?' for _ in LABEL_COLUMNS)})",
+                tuple(row.get(column) for column in LABEL_COLUMNS),
+            )
+            if cursor.rowcount:
+                report.added += 1
+            else:
+                report.duplicates += 1
+    return report
+
+
 # --------------------------------------------------------------------------- #
 # Files and folders
 # --------------------------------------------------------------------------- #
@@ -311,6 +360,8 @@ def ingest_file(conn: sqlite3.Connection, path: Path) -> FileReport:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as error:
             return FileReport(str(path), "skipped", invalid=1, notes=[f"invalid JSON: {error}"])
+        if isinstance(payload, dict) and "labels" in payload:
+            return ingest_labels(conn, payload["labels"], source_path=str(path))
         if isinstance(payload, dict) and "judgments" in payload:
             return ingest_judgments(conn, payload["judgments"], source_path=str(path))
         # Other JSON files next to the results (trace summaries, retrieval
@@ -335,5 +386,5 @@ def ingest_paths(conn: sqlite3.Connection, paths: Iterable[Path]) -> list[FileRe
         else:
             raise FileNotFoundError(path)
     # Judge verdicts point at case results, so they are loaded after everything else.
-    files.sort(key=lambda p: p.name.startswith(JUDGMENTS_PREFIX))
+    files.sort(key=lambda p: p.name.startswith((JUDGMENTS_PREFIX, LABELS_PREFIX)))
     return [ingest_file(conn, file) for file in files]

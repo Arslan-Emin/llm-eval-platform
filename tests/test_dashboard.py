@@ -94,3 +94,30 @@ def test_empty_database_is_seeded_when_configured(tmp_path, monkeypatch):
     monkeypatch.setenv("EVALPLAT_SEED_DIR", str(SAMPLE_DIR))
     app = run("page_runs")
     assert app.metric[0].value == "100.0%"
+
+
+def test_calibrate_page_saves_a_label_and_shows_the_judge_afterwards(sample_db, monkeypatch):
+    from evalplat import calibration
+
+    conn = store.connect(sample_db)
+    calibration.build_label_queue(conn, size=5)
+    monkeypatch.setenv(calibration.LABELER_ENV, "tester")
+    app = run("page_calibrate")
+    assert "0 of 5 labeled" in app.get("progress")[0].proto.text
+
+    first = calibration.queue(conn, "tester")[0]
+    app.button(key=f"fail_{first['prompt_hash']}").click().run()
+    assert not app.exception
+    assert calibration.queue(conn, "tester")[0]["label"] == "fail"
+    feedback = [m.value for m in [*app.success, *app.warning]]
+    assert any("you said **Wrong**" in text for text in feedback)
+
+
+def test_calibrate_page_is_read_only_in_the_demo(sample_db, monkeypatch):
+    from evalplat import calibration
+
+    calibration.build_label_queue(store.connect(sample_db), size=5)
+    monkeypatch.setenv("EVALPLAT_READ_ONLY", "true")
+    app = run("page_calibrate")
+    assert "Labeling is turned off" in app.info[0].value
+    assert not [b for b in app.button if b.key and b.key.startswith("fail_")]

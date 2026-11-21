@@ -19,7 +19,7 @@ from typing import Any
 import pandas as pd
 import streamlit as st
 
-from evalplat import charts, metrics, report, store, traces
+from evalplat import calibration, charts, metrics, report, store, traces
 from evalplat.ingest import ingest_paths
 from evalplat.judge import judge_summary
 
@@ -793,6 +793,262 @@ def page_conversation() -> None:
         st.json(trace["final_values"])
 
 
+READ_ONLY_ENV = "EVALPLAT_READ_ONLY"
+
+# What the labeler is asked, in plain words. Same question as the judge's rubric.
+LABEL_GUIDE = {
+    "claims_match_actions": (
+        "Did the assistant do what its reply says?",
+        "If it says a value is saved or changed, is that value really among the saved "
+        "values? If it says the form was sent, was it really submitted? Asking a "
+        "question or saying what comes next is not a claim.",
+    ),
+    "grounded_answer": (
+        "Is what it says about the clinic supported by the FAQ text it found?",
+        "Prices, hours, policies and services must match the FAQ passages below. If the "
+        "passages do not contain the answer, the reply should say it does not know.",
+    ),
+    "confirmation_summary": (
+        "Did it show a correct summary and ask the user to confirm?",
+        "Every field is filled and the form is not sent yet. The reply should list all "
+        "saved values correctly and ask for confirmation.",
+    ),
+}
+BUTTONS = [
+    ("pass", "Correct", ":material/check_circle:", "The assistant behaved correctly here."),
+    (
+        "fail",
+        "Wrong",
+        ":material/cancel:",
+        "The assistant made the mistake the question asks about.",
+    ),
+    (
+        "not_applicable",
+        "Question doesn't fit",
+        ":material/remove_circle:",
+        "This question should not have been asked about this reply.",
+    ),
+]
+LABEL_TEXT = {"pass": "Correct", "fail": "Wrong", "not_applicable": "Question doesn't fit"}
+
+
+def read_only() -> bool:
+    return os.environ.get(READ_ONLY_ENV, "").lower() in {"1", "true", "yes"}
+
+
+def page_calibrate() -> None:
+    st.title("Calibrate the judge")
+    st.caption(
+        "A person answers the same yes/no questions the LLM judge answered, without "
+        "seeing the judge's verdict first. Agreement between the two shows how far the "
+        "judge can be trusted; disagreements show what to fix."
+    )
+    conn = get_conn()
+    labeler = calibration.labeler_name()
+    label_tab, agreement_tab = st.tabs(["Label", "Agreement"])
+    with label_tab:
+        _label_tab(conn, labeler)
+    with agreement_tab:
+        _agreement_tab(conn)
+
+
+def _label_tab(conn: sqlite3.Connection, labeler: str) -> None:
+    entries = calibration.queue(conn, labeler)
+    if not entries:
+        st.info("No label queue yet. Create one with `evalplat label-sample`.")
+        return
+    if read_only():
+        done = sum(e["label"] is not None for e in calibration.queue(conn, labeler))
+        st.info(
+            f"Labeling is turned off in this demo. {done} of {len(entries)} replies were "
+            "labeled by the author; see the Agreement tab."
+        )
+        return
+
+    done = sum(e["label"] is not None for e in entries)
+    st.progress(done / len(entries), text=f"{done} of {len(entries)} labeled (as {labeler})")
+
+    last = st.session_state.get("last_label")
+    if last:
+        same = last["label"] == last["verdict"]
+        message = (
+            f"Previous reply: you said **{LABEL_TEXT[last['label']]}**, the judge said "
+            f"**{LABEL_TEXT[last['verdict']]}**. Judge's reason: {last['reason']}"
+        )
+        (st.success if same else st.warning)(message)
+        if st.button("Undo that label", icon=":material/undo:"):
+            calibration.delete_label(conn, last["prompt_hash"], labeler)
+            del st.session_state["last_label"]
+            st.rerun()
+
+    entry = next((e for e in entries if e["label"] is None), None)
+    if entry is None:
+        st.success("All replies are labeled. Open the Agreement tab to see the results.")
+        return
+    found = calibration.item_with_history(conn, entry["conversation_id"], entry["turn_index"])
+    if found is None:
+        st.error("This reply's trace is missing; it cannot be labeled.")
+        return
+    item, earlier = found
+    question, hint = LABEL_GUIDE.get(entry["rubric"], (entry["rubric"], ""))
+
+    st.markdown(f"#### {entry['position'] + 1}. {question}")
+    st.caption(hint)
+    if earlier:
+        with st.expander(f"Earlier in this conversation ({len(earlier)} turns)"):
+            for turn in earlier:
+                st.chat_message("user").write(turn["user_text"])
+                st.chat_message("assistant").write(turn["reply"])
+    st.chat_message("user").write(item["user_text"])
+    st.chat_message("assistant").write(item["reply"])
+
+    st.markdown("**What actually happened in this turn**")
+    left, right = st.columns(2)
+    with left:
+        st.markdown("Saved form values after this turn")
+        st.json(item["saved_values"] or {}, expanded=True)
+        st.markdown(f"Form submitted: **{'yes' if item['submitted'] else 'no'}**")
+    with right:
+        if entry["rubric"] == "grounded_answer":
+            st.markdown("FAQ passages the assistant found")
+            for passage in item["passages"]:
+                st.markdown(f"> **{passage['title']}**  \n> {passage['text']}")
+        else:
+            st.markdown("Tool calls in this turn")
+            calls = [
+                {
+                    "tool": call["name"],
+                    "succeeded": bool(call["ok"]),
+                    "arguments": json.dumps(call["arguments"], ensure_ascii=False),
+                }
+                for call in item["tool_calls"]
+            ]
+            if calls:
+                st.dataframe(pd.DataFrame(calls), hide_index=True)
+            else:
+                st.markdown("_No tools were called._")
+
+    note = st.text_input("Note (optional)", key=f"note_{entry['prompt_hash']}")
+    st.caption("Keyboard: 1 = correct, 2 = wrong, 3 = question doesn't fit.")
+    columns = st.columns(len(BUTTONS))
+    for number, (column, (value, text, icon, help_text)) in enumerate(
+        zip(columns, BUTTONS, strict=True), start=1
+    ):
+        column.button(
+            f"{number}. {text}",
+            icon=icon,
+            help=help_text,
+            width="stretch",
+            shortcut=str(number),
+            key=f"{value}_{entry['prompt_hash']}",
+            on_click=_save_label,
+            args=(entry, value, labeler, note),
+        )
+
+
+def _save_label(entry: dict[str, Any], value: str, labeler: str, note: str) -> None:
+    conn = get_conn()
+    calibration.save_label(conn, entry, value, labeler=labeler, note=note)
+    judged = conn.execute(
+        "SELECT verdict, reason FROM judgments WHERE prompt_hash = ? LIMIT 1",
+        (entry["prompt_hash"],),
+    ).fetchone()
+    st.session_state["last_label"] = {
+        "prompt_hash": entry["prompt_hash"],
+        "label": value,
+        "verdict": judged["verdict"] if judged else None,
+        "reason": judged["reason"] if judged else "",
+    }
+
+
+def _agreement_tab(conn: sqlite3.Connection) -> None:
+    result = calibration.agreement(conn)
+    overall = result["overall"]
+    if not overall["labeled"]:
+        st.info("No labels yet.")
+        return
+
+    def pct(value: float | None) -> str:
+        return "n/a" if value is None else f"{value:.0%}"
+
+    cols = st.columns(4)
+    cols[0].metric("Labeled", overall["labeled"], border=True)
+    cols[1].metric(
+        "Judge agrees with the human",
+        pct(overall["accuracy"]),
+        help=f"{overall['agree']} of {overall['scored']} replies where the question applied",
+        border=True,
+    )
+    kappa = overall["kappa"]
+    cols[2].metric(
+        "Cohen's kappa",
+        "n/a" if kappa is None else f"{kappa:.2f}",
+        help="Agreement beyond chance: 1 = perfect, 0 = no better than chance",
+        border=True,
+    )
+    cols[3].metric(
+        "Question didn't fit",
+        overall["not_applicable"],
+        help="The human said the rubric should not have been applied to this reply",
+        border=True,
+    )
+    st.dataframe(
+        pd.DataFrame(
+            [
+                {
+                    "rubric": name,
+                    "labeled": s["labeled"],
+                    "agreement": pct(s["accuracy"]),
+                    "kappa": "n/a" if s["kappa"] is None else f"{s['kappa']:.2f}",
+                    "judge fail is right": pct(s["fail_precision"]),
+                    "real fails caught": pct(s["fail_recall"]),
+                    "didn't fit": s["not_applicable"],
+                }
+                for name, s in result["rubrics"].items()
+            ]
+        ),
+        hide_index=True,
+    )
+    confusion = overall["confusion"]
+    st.markdown("**Judge vs human** (replies where the question applied)")
+    st.dataframe(
+        pd.DataFrame(
+            {
+                "human: correct": [
+                    confusion["judge_pass_human_pass"],
+                    confusion["judge_fail_human_pass"],
+                ],
+                "human: wrong": [
+                    confusion["judge_pass_human_fail"],
+                    confusion["judge_fail_human_fail"],
+                ],
+            },
+            index=["judge: pass", "judge: fail"],
+        )
+    )
+    for title, rows in [
+        ("Disagreements", result["disagreements"]),
+        ("Replies where the question didn't fit", result["not_applicable"]),
+    ]:
+        if rows:
+            st.markdown(f"**{title} ({len(rows)})**")
+            st.dataframe(
+                pd.DataFrame(
+                    [
+                        {
+                            "rubric": r["rubric"],
+                            "human": LABEL_TEXT[r["label"]],
+                            "judge": r["verdict"],
+                            "judge's reason": r["reason"],
+                            "note": r["note"] or "",
+                        }
+                        for r in rows
+                    ]
+                ),
+                hide_index=True,
+            )
+
+
 def _transcript(transcript: list[dict[str, Any]]) -> None:
     for turn in transcript:
         st.chat_message("user").write(turn["user"])
@@ -827,6 +1083,9 @@ def main() -> None:
             title="Conversation",
             icon=":material/forum:",
             url_path="conversation",
+        ),
+        calibrate=st.Page(
+            page_calibrate, title="Calibrate judge", icon=":material/rule:", url_path="calibrate"
         ),
     )
     st.navigation(list(PAGES.values())).run()

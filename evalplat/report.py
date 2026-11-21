@@ -286,3 +286,52 @@ def format_judgments(summary: dict[str, Any]) -> str:
                 f"[{f['rubric']}]: {f['reason']}"
             )
     return "\n".join(lines)
+
+
+def format_calibration(result: dict[str, Any]) -> str:
+    overall = result["overall"]
+    if not overall["labeled"]:
+        return "No human labels yet. Create a queue with: evalplat label-sample"
+
+    def pct(value: float | None) -> str:
+        return "n/a" if value is None else f"{value * 100:.0f}%"
+
+    def kappa(value: float | None) -> str:
+        return "n/a" if value is None else f"{value:.2f}"
+
+    rows = [
+        [
+            name,
+            str(s["labeled"]),
+            pct(s["accuracy"]),
+            kappa(s["kappa"]),
+            pct(s["fail_precision"]),
+            pct(s["fail_recall"]),
+            str(s["not_applicable"]),
+        ]
+        for name, s in [("all", overall), *result["rubrics"].items()]
+    ]
+    c = overall["confusion"]
+    lines = [
+        table(
+            ["rubric", "labeled", "agree", "kappa", "judge fail right", "fails caught", "n/a"],
+            rows,
+        ),
+        "",
+        "                human pass  human fail",
+        f"judge pass      {c['judge_pass_human_pass']:>10}  {c['judge_pass_human_fail']:>10}",
+        f"judge fail      {c['judge_fail_human_pass']:>10}  {c['judge_fail_human_fail']:>10}",
+    ]
+    for title, items in [
+        ("Disagreements", result["disagreements"]),
+        ("Question did not fit (rubric applied where it should not)", result["not_applicable"]),
+    ]:
+        if items:
+            lines += ["", f"{title}:"]
+            for r in items:
+                note = f" | note: {r['note']}" if r["note"] else ""
+                lines.append(
+                    f"  [{r['rubric']}] human {r['label']}, judge {r['verdict']}: "
+                    f"{r['reason']}{note}"
+                )
+    return "\n".join(lines)
