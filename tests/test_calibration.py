@@ -108,8 +108,8 @@ def test_labels_export_and_load_into_another_database(conn, tmp_path, capsys):
     path.write_text(json.dumps(calibration.export_labels(conn, "h")), encoding="utf-8")
 
     target = store.connect(":memory:")
-    [report] = ingest_paths(target, [path])
-    assert report.added == 3
+    reports = ingest_paths(target, [SAMPLE_DIR, path])
+    assert reports[-1].kind == "labels" and reports[-1].added == 3
     assert calibration.agreement(target, labeler="h")["overall"]["labeled"] == 3
 
     db = str(tmp_path / "cli.db")
