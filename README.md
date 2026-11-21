@@ -8,6 +8,14 @@ Built to evaluate [conversational-form-agent](https://github.com/Arslan-Emin/con
 
 > Work in progress.
 
+## Usage
+
+```bash
+evalplat ingest data/sample      # eval results (.json) and traces (.jsonl) into evalplat.db
+```
+
+Re-running `ingest` is safe: runs and events that are already stored are skipped.
+
 ## Development
 
 Requires Python 3.11+.
