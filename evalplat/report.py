@@ -57,6 +57,18 @@ def metric_rows(metrics: dict[str, Any]) -> list[tuple[str, Any, Any, bool | Non
     rows += [
         ("Wrong / premature submits", lambda m: m["wrong_submit"], fmt_rate, False),
         ("Missed submits", lambda m: m["missed_submit"], fmt_rate, False),
+        (
+            "Submits blocked by the code guard",
+            lambda m: m["guard_blocked_submits"],
+            fmt_number,
+            False,
+        ),
+        (
+            "Field updates rejected by validation",
+            lambda m: m["rejected_field_updates"],
+            fmt_number,
+            None,
+        ),
         ("Cost / conversation", lambda m: m["cost_usd"]["per_conversation"], fmt_usd, False),
         (
             "Input tokens / conversation",

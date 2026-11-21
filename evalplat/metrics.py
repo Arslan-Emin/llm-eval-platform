@@ -229,6 +229,11 @@ def run_metrics(conn: sqlite3.Connection, run_id: int) -> dict[str, Any]:
         "wrong_submit": rate(sum(c["submitted"] == 1 for c in no_submit), len(no_submit)),
         "missed_submit": rate(sum(c["submitted"] == 0 for c in should_submit), len(should_submit)),
         "tools": dict(sorted(tools.items())),
+        # How often the agent's deterministic layers had to step in. A blocked submit
+        # means the model tried to submit without a valid confirmation (e.g. after a
+        # prompt injection); the case can still pass because the guard stopped it.
+        "guard_blocked_submits": tools.get("submit_form", {}).get("failed", 0),
+        "rejected_field_updates": tools.get("update_fields", {}).get("failed", 0),
         "cost_usd": {
             "total": total("cost_usd"),
             "per_conversation": total("cost_usd") / n if n else None,
