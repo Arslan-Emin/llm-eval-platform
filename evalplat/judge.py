@@ -235,6 +235,7 @@ class JudgeReport:
     reused: int = 0  # identical question judged before: verdict copied, nothing sent
     questions: int = 0  # distinct prompts to send (several replies can share one)
     judged: int = 0  # questions answered by the judge
+    stale: int = 0  # stored verdicts whose question no longer applies (removed)
     errors: list[str] = field(default_factory=list)
     cost_usd: float = 0.0
     estimated_cost_usd: float = 0.0
@@ -286,6 +287,35 @@ def run_judge(
     known = {r["prompt_hash"]: (r["verdict"], r["reason"]) for r in rows}
     todo = [t for t in tasks if _key(t) not in stored]
     report.already_judged = len(tasks) - len(todo)
+
+    # Verdicts for questions that are no longer asked (a rubric's rule or text
+    # changed) are stale; still valid ones get the current rubric version.
+    current = {_key(t) for t in tasks}
+    run_rows = conn.execute(
+        """
+        SELECT j.id, j.case_result_id, j.turn_index, j.rubric, j.prompt_hash FROM judgments j
+        JOIN case_results c ON c.id = j.case_result_id WHERE c.run_id = ? AND j.judge_model = ?
+        """,
+        (run_id, model),
+    ).fetchall()
+    stale = [
+        r["id"]
+        for r in run_rows
+        if r["rubric"] in {rubric.name for rubric in rubrics}
+        and (r["case_result_id"], r["turn_index"], r["rubric"], r["prompt_hash"]) not in current
+    ]
+    report.stale = len(stale)
+    if not dry_run:
+        with transaction(conn):
+            conn.executemany("DELETE FROM judgments WHERE id = ?", [(i,) for i in stale])
+            for rubric in rubrics:
+                conn.execute(
+                    """
+                    UPDATE judgments SET rubric_version = ? WHERE rubric = ? AND judge_model = ?
+                    AND case_result_id IN (SELECT id FROM case_results WHERE run_id = ?)
+                    """,
+                    (rubric.version, rubric.name, model, run_id),
+                )
 
     groups: dict[str, list[Task]] = defaultdict(list)
     for task in todo:

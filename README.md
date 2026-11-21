@@ -70,6 +70,40 @@ per reply with the hash of the exact prompt: re-running never pays twice, identi
 questions (a reply repeated word for word across repeats) are sent once, and editing
 a rubric makes its old verdicts stale automatically.
 
+### Calibrating the judge with human labels
+
+```bash
+evalplat label-sample --size 60   # pick verdicts to label (all judge fails + balanced passes)
+# label them on the dashboard's "Calibrate judge" page, then:
+evalplat calibration              # agreement, kappa, confusion matrix, disagreements
+```
+
+A person answers the judge's questions blind (the verdict is shown only after
+answering), with a third option for "this question should not have been asked
+about this reply". 60 verdicts from three runs were labeled
+([labels](data/sample/labels/labels_human-1.json)):
+
+| | Judge `confirmation_summary` v1 | v2 |
+|---|---|---|
+| Judge vs human on the questions that applied | 51 / 51 agree | 51 / 51 agree |
+| Labeled "question doesn't fit" | 9 | 0 |
+| `confirmation_summary` failures across the three runs | 9 (all false alarms) | 0 |
+
+([v1](data/sample/calibration/rubric_v1.json), [v2](data/sample/calibration/rubric_v2.json))
+
+The judge itself answered every question the way the human did; what the labels
+exposed was a rubric rule. v1 expected a summary in *every* turn once the form was
+complete, so when a user said "let me think about it" right after seeing the
+summary, the judge (correctly, by the letter of the question) failed the reply.
+v2 asks for a summary only in a turn that saved a value. Re-judging cost nothing:
+the questions that were still asked had the same prompts, so their stored
+verdicts were reused, and the 9 stale ones were removed.
+
+Two caveats: the labels contain only two real failures, so the judge's recall is
+measured on very few positives; and v2 was fixed using the same labels it is
+evaluated on. Labeling also surfaced an error no check measures: one reply mixed
+a Cyrillic word into Turkish ("телефонla").
+
 ### Notes
 
 Re-running `ingest` is safe: runs and events that are already stored are skipped.

@@ -127,11 +127,12 @@ def test_turns_without_logged_content_cannot_be_judged():
 def test_rubrics_apply_to_the_right_turns(conn):
     tasks = judge.plan_tasks(judge.run_items(conn, PRO_RUN), RUBRICS.values())
     counts = {name: sum(t.rubric.name == name for t in tasks) for name in RUBRICS}
-    # 198 replies; 24 used the knowledge base; 72 came after every field was filled.
+    # 198 replies; 24 used the knowledge base; 69 saved a value that left the form complete
+    # (the turns where a fresh summary is due).
     assert counts == {
         "grounded_answer": 24,
         "claims_match_actions": 198,
-        "confirmation_summary": 72,
+        "confirmation_summary": 69,
     }
 
 
@@ -151,7 +152,7 @@ def test_changing_a_rubric_changes_the_prompt_hash(conn):
 def test_dry_run_sends_nothing(conn):
     fake = FakeJudge()
     report = judge.run_judge(conn, PRO_RUN, fake, dry_run=True)
-    assert report.planned == 294 and fake.calls == 0
+    assert report.planned == 291 and fake.calls == 0
     assert 0 < report.estimated_cost_usd < 1
 
 
@@ -212,14 +213,14 @@ def test_cli_dry_run_and_missing_key(tmp_path, monkeypatch, capsys):
     capsys.readouterr()
 
     assert main(["--db", db, "judge", "v4-pro", "--dry-run"]) == 0
-    assert "294 rubric checks; 294 already judged" in capsys.readouterr().out
+    assert "291 rubric checks; 291 already judged" in capsys.readouterr().out
 
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     monkeypatch.setattr("evalplat.cli._load_dotenv", lambda: None)
     assert main(["--db", db, "judge", "v4-pro"]) == 2
 
     assert main(["--db", db, "judgments", "v4-pro"]) == 0
-    assert "294 verdicts by deepseek-v4-pro" in capsys.readouterr().out
+    assert "291 verdicts by deepseek-v4-pro" in capsys.readouterr().out
 
 
 # --------------------------------------------------------------------------- #
@@ -231,7 +232,7 @@ def test_sample_verdicts_catch_the_reply_that_claimed_an_unsaved_date():
     conn = store.connect(":memory:")
     ingest_paths(conn, [SAMPLE_DIR])
     summary = judge.judge_summary(conn, PRO_RUN)
-    assert summary["judged"] == 294
+    assert summary["judged"] == 291
     assert summary["rubrics"]["claims_match_actions"] == {
         "passed": 196,
         "total": 198,
@@ -254,9 +255,50 @@ def test_exported_verdicts_load_into_another_database(tmp_path):
 
     target = store.connect(":memory:")
     ingest_paths(target, [SAMPLE_DIR / "results", SAMPLE_DIR / "traces", path])
-    assert judge.judge_summary(target, PRO_RUN)["judged"] == 294
+    assert judge.judge_summary(target, PRO_RUN)["judged"] == 291
     # Loading again adds nothing; verdicts for unknown conversations are rejected.
     [again] = ingest_paths(target, [path])
-    assert (again.added, again.duplicates) == (0, 294)
+    assert (again.added, again.duplicates) == (0, 291)
     [orphan] = ingest_paths(store.connect(":memory:"), [path])
-    assert orphan.invalid == 294
+    assert orphan.invalid == 291
+
+
+# --------------------------------------------------------------------------- #
+# Rubric v2 (after calibration)
+# --------------------------------------------------------------------------- #
+
+
+def test_summary_rubric_skips_turns_where_nothing_changed(conn):
+    items = [
+        i
+        for i in judge.run_items(conn, PRO_RUN)
+        if i["case_id"] == "no_confirm_user_hesitates" and i["repeat_index"] == 0
+    ]
+    completing, hesitating = items[0], items[1]
+    rubric = RUBRICS["confirmation_summary"]
+    assert rubric.applies(completing)  # the turn that filled the form
+    assert not rubric.applies(hesitating)  # "let me think": the summary was already shown
+
+
+def test_stale_verdicts_are_removed_and_valid_ones_kept(conn):
+    """Verdicts made under an old rubric rule disappear when the rule stops asking
+    that question; verdicts for questions still asked are kept, not paid again."""
+    fake = FakeJudge()
+    judge.run_judge(conn, PRO_RUN, fake, rubric_names=["confirmation_summary"])
+    case = conn.execute(
+        "SELECT id, conversation_id FROM case_results"
+        " WHERE run_id = ? AND case_id = 'no_confirm_user_hesitates'",
+        (PRO_RUN,),
+    ).fetchone()
+    with store.transaction(conn):  # a verdict the v1 rule produced
+        conn.execute(
+            "INSERT INTO judgments (case_result_id, conversation_id, turn_index, rubric,"
+            " rubric_version, prompt_hash, judge_model, verdict, created_at)"
+            " VALUES (?, ?, 1, 'confirmation_summary', '1', 'old', 'deepseek-v4-pro', 'fail', 'x')",
+            (case["id"], case["conversation_id"]),
+        )
+    calls = fake.calls
+    report = judge.run_judge(conn, PRO_RUN, fake, rubric_names=["confirmation_summary"])
+    assert (report.stale, report.judged, fake.calls) == (1, 0, calls)
+    versions = {r[0] for r in conn.execute("SELECT DISTINCT rubric_version FROM judgments")}
+    assert versions == {"2"}

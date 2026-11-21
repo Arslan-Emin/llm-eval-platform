@@ -37,8 +37,18 @@ def _searched(item: JudgeItem) -> bool:
 
 
 def _awaiting_confirmation(item: JudgeItem) -> bool:
+    """Every field is filled, nothing is submitted, and a value was saved in this turn.
+
+    v1 asked for a summary in every turn after the form was complete. Human labels
+    showed that was wrong: when the user says "let me think about it" after seeing
+    the summary, nothing changed and repeating the summary is not needed. A form can
+    only become complete (or change) through a successful update_fields, so that is
+    the turn where a fresh summary is due.
+    """
     total = item.get("fields_total") or 0
-    return total > 0 and item.get("fields_filled") == total and not item.get("submitted")
+    complete = total > 0 and item.get("fields_filled") == total and not item.get("submitted")
+    saved_now = any(c["name"] == "update_fields" and c["ok"] for c in item["tool_calls"])
+    return complete and saved_now
 
 
 GROUNDED_ANSWER = Rubric(
@@ -88,7 +98,7 @@ CLAIMS_MATCH_ACTIONS = Rubric(
 
 CONFIRMATION_SUMMARY = Rubric(
     name="confirmation_summary",
-    version="1",
+    version="2",
     title="Correct summary before submitting",
     question=(
         "Every form field is now filled and the form is not submitted yet, so the "

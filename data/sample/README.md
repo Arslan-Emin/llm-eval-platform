@@ -15,5 +15,7 @@ Real eval runs and traces from
 | `traces/eval_*.jsonl` | Full trace events of every run since tracing was added (the first two predate it) |
 | `traces/2026-11-*.jsonl` | Traces of the app itself; message content is not logged there |
 | `judgments/judgments_*.json` | LLM judge verdicts (`deepseek-v4-pro`) for the last three runs |
+| `labels/labels_human-1.json` | 60 human labels of judge questions, for calibration |
+| `calibration/rubric_v1.json`, `rubric_v2.json` | Judge vs human agreement before and after the rubric fix |
 
 All names, phone numbers and messages in the eval data are fictional.

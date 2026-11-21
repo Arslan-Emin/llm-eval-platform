@@ -114,7 +114,8 @@ def cmd_judge(args: argparse.Namespace) -> int:
     )
     print(
         f"Run {run['name']}: {result.planned} rubric checks; {result.already_judged} already "
-        f"judged, {result.reused} answered by an identical earlier question."
+        f"judged, {result.reused} answered by an identical earlier question, "
+        f"{result.stale} stale verdicts {'to remove' if args.dry_run else 'removed'}."
     )
     print(
         f"To send to {args.model}: {result.questions} distinct questions, "
