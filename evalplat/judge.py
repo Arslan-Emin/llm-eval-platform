@@ -447,3 +447,18 @@ def judge_summary(conn: sqlite3.Connection, run_id: int) -> dict[str, Any]:
             ],
         },
     }
+
+
+def export_judgments(conn: sqlite3.Connection, run_id: int) -> dict[str, Any]:
+    """Verdicts of a run in the file format `evalplat ingest` reads back."""
+    from evalplat.ingest import JUDGMENT_COLUMNS
+
+    rows = conn.execute(
+        f"""
+        SELECT {", ".join("j." + c for c in JUDGMENT_COLUMNS)} FROM judgments j
+        JOIN case_results c ON c.id = j.case_result_id
+        WHERE c.run_id = ? ORDER BY j.conversation_id, j.turn_index, j.rubric
+        """,
+        (run_id,),
+    ).fetchall()
+    return {"judgments": [dict(row) for row in rows]}

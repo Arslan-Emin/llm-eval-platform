@@ -256,6 +256,49 @@ def ingest_trace_file(conn: sqlite3.Connection, path: Path) -> FileReport:
 
 
 # --------------------------------------------------------------------------- #
+# Judge verdicts (exported with `evalplat judgments <run> --export`)
+# --------------------------------------------------------------------------- #
+
+JUDGMENTS_PREFIX = "judgments_"
+JUDGMENT_COLUMNS = (
+    "conversation_id", "turn_index", "rubric", "rubric_version", "prompt_hash", "judge_model",
+    "verdict", "reason", "input_tokens", "cached_input_tokens", "output_tokens", "cost_usd",
+    "latency_ms", "cached", "created_at",
+)  # fmt: skip
+
+
+def ingest_judgments(
+    conn: sqlite3.Connection, judgments: list[Any], *, source_path: str
+) -> FileReport:
+    """Load exported verdicts. They are matched to case results by conversation_id,
+    which (unlike row ids) is the same in every database."""
+    report = FileReport(source_path, "judgments")
+    with transaction(conn):
+        for row in judgments:
+            case = None
+            if isinstance(row, dict) and row.get("verdict") in {"pass", "fail"}:
+                case = conn.execute(
+                    "SELECT id FROM case_results WHERE conversation_id = ?",
+                    (row.get("conversation_id"),),
+                ).fetchone()
+            if case is None:
+                report.invalid += 1
+                if not report.notes:
+                    report.notes.append("verdict without a known conversation (ingest runs first)")
+                continue
+            cursor = conn.execute(
+                f"INSERT OR IGNORE INTO judgments (case_result_id, {', '.join(JUDGMENT_COLUMNS)})"
+                f" VALUES (?, {', '.join('?' for _ in JUDGMENT_COLUMNS)})",
+                (case["id"], *(row.get(column) for column in JUDGMENT_COLUMNS)),
+            )
+            if cursor.rowcount:
+                report.added += 1
+            else:
+                report.duplicates += 1
+    return report
+
+
+# --------------------------------------------------------------------------- #
 # Files and folders
 # --------------------------------------------------------------------------- #
 
@@ -268,6 +311,8 @@ def ingest_file(conn: sqlite3.Connection, path: Path) -> FileReport:
             payload = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as error:
             return FileReport(str(path), "skipped", invalid=1, notes=[f"invalid JSON: {error}"])
+        if isinstance(payload, dict) and "judgments" in payload:
+            return ingest_judgments(conn, payload["judgments"], source_path=str(path))
         # Other JSON files next to the results (trace summaries, retrieval
         # benchmarks) are not eval runs; skip them instead of failing.
         if not (isinstance(payload, dict) and {"run", "summary", "cases"} <= payload.keys()):
@@ -289,4 +334,6 @@ def ingest_paths(conn: sqlite3.Connection, paths: Iterable[Path]) -> list[FileRe
             files.append(path)
         else:
             raise FileNotFoundError(path)
+    # Judge verdicts point at case results, so they are loaded after everything else.
+    files.sort(key=lambda p: p.name.startswith(JUDGMENTS_PREFIX))
     return [ingest_file(conn, file) for file in files]

@@ -1,3 +1,4 @@
+import json
 import threading
 
 import pytest
@@ -34,8 +35,11 @@ class FakeJudge:
 
 @pytest.fixture
 def conn():
+    """Sample data without its stored verdicts, so the fake judge starts from zero."""
     conn = store.connect(":memory:")
     ingest_paths(conn, [SAMPLE_DIR])
+    with store.transaction(conn):
+        conn.execute("DELETE FROM judgments")
     return conn
 
 
@@ -72,18 +76,40 @@ def test_unusable_answers_raise_after_the_last_attempt():
 
 def test_items_follow_saved_values_and_passages_turn_by_turn():
     events = [
-        {"type": "tool_call", "name": "update_fields", "ok": True,
-         "arguments": {"fields": {"phone": "0532"}},
-         "result": {"ok": True, "current_values": {"phone": "0532", "full_name": None}}},
-        {"type": "tool_call", "name": "search_knowledge_base", "ok": True,
-         "arguments": {"query": "fiyat"},
-         "result": {"ok": True, "results": [{"title": "Fiyat", "text": "500 TL", "score": 0.8}]}},
+        {
+            "type": "tool_call",
+            "name": "update_fields",
+            "ok": True,
+            "arguments": {"fields": {"phone": "0532"}},
+            "result": {"ok": True, "current_values": {"phone": "0532", "full_name": None}},
+        },
+        {
+            "type": "tool_call",
+            "name": "search_knowledge_base",
+            "ok": True,
+            "arguments": {"query": "fiyat"},
+            "result": {"ok": True, "results": [{"title": "Fiyat", "text": "500 TL", "score": 0.8}]},
+        },
         {"type": "llm_call"},
-        {"type": "agent_turn", "turn_index": 0, "user_text": "u0", "reply": "r0",
-         "fields_filled": 1, "fields_total": 2, "submitted": False},
-        {"type": "agent_turn", "turn_index": 1, "user_text": "u1", "reply": "r1",
-         "fields_filled": 1, "fields_total": 2, "submitted": False},
-    ]  # fmt: skip
+        {
+            "type": "agent_turn",
+            "turn_index": 0,
+            "user_text": "u0",
+            "reply": "r0",
+            "fields_filled": 1,
+            "fields_total": 2,
+            "submitted": False,
+        },
+        {
+            "type": "agent_turn",
+            "turn_index": 1,
+            "user_text": "u1",
+            "reply": "r1",
+            "fields_filled": 1,
+            "fields_total": 2,
+            "submitted": False,
+        },
+    ]
     first, second = judge.items_for_conversation(events)
 
     assert first["saved_values"] == {"phone": "0532"}  # unset fields are left out
@@ -186,11 +212,51 @@ def test_cli_dry_run_and_missing_key(tmp_path, monkeypatch, capsys):
     capsys.readouterr()
 
     assert main(["--db", db, "judge", "v4-pro", "--dry-run"]) == 0
-    assert "294 rubric checks" in capsys.readouterr().out
+    assert "294 rubric checks; 294 already judged" in capsys.readouterr().out
 
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     monkeypatch.setattr("evalplat.cli._load_dotenv", lambda: None)
     assert main(["--db", db, "judge", "v4-pro"]) == 2
 
     assert main(["--db", db, "judgments", "v4-pro"]) == 0
-    assert "No judge verdicts" in capsys.readouterr().out
+    assert "294 verdicts by deepseek-v4-pro" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------------------- #
+# Real verdicts in the sample data (deepseek-v4-pro as judge)
+# --------------------------------------------------------------------------- #
+
+
+def test_sample_verdicts_catch_the_reply_that_claimed_an_unsaved_date():
+    conn = store.connect(":memory:")
+    ingest_paths(conn, [SAMPLE_DIR])
+    summary = judge.judge_summary(conn, PRO_RUN)
+    assert summary["judged"] == 294
+    assert summary["rubrics"]["claims_match_actions"] == {
+        "passed": 196,
+        "total": 198,
+        "rate": 196 / 198,
+    }
+    claims = {
+        (f["case_id"], f["turn_index"])
+        for f in summary["failures"]
+        if f["rubric"] == "claims_match_actions"
+    }
+    assert claims == {("rag_during_booking", 0), ("rag_during_booking", 2)}
+    assert summary["rag_keyword_vs_judge"]["agree"] == 21
+
+
+def test_exported_verdicts_load_into_another_database(tmp_path):
+    source = store.connect(":memory:")
+    ingest_paths(source, [SAMPLE_DIR])
+    path = tmp_path / "judgments_pro.json"
+    path.write_text(json.dumps(judge.export_judgments(source, PRO_RUN)))
+
+    target = store.connect(":memory:")
+    ingest_paths(target, [SAMPLE_DIR / "results", SAMPLE_DIR / "traces", path])
+    assert judge.judge_summary(target, PRO_RUN)["judged"] == 294
+    # Loading again adds nothing; verdicts for unknown conversations are rejected.
+    [again] = ingest_paths(target, [path])
+    assert (again.added, again.duplicates) == (0, 294)
+    [orphan] = ingest_paths(store.connect(":memory:"), [path])
+    assert orphan.invalid == 294

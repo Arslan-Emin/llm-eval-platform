@@ -14,5 +14,6 @@ Real eval runs and traces from
 | `results/20261121-165926_deepseek-flash.json` | Same suite on `deepseek-flash` with thinking on: 90/90 |
 | `traces/eval_*.jsonl` | Full trace events of every run since tracing was added (the first two predate it) |
 | `traces/2026-11-*.jsonl` | Traces of the app itself; message content is not logged there |
+| `judgments/judgments_*.json` | LLM judge verdicts (`deepseek-v4-pro`) for the last three runs |
 
 All names, phone numbers and messages in the eval data are fictional.

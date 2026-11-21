@@ -52,6 +52,7 @@ pip install -e ".[judge]"        # needs DEEPSEEK_API_KEY in the environment or 
 evalplat judge v4-pro --dry-run  # what would be judged, and an upper-bound cost
 evalplat judge v4-pro            # score the run's replies
 evalplat judgments v4-pro        # verdicts, failures, judge vs keyword checks
+evalplat judgments v4-pro --export data/sample/judgments   # save verdicts for ingest
 ```
 
 Keyword checks only see the end state and fixed phrases. The judge

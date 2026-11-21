@@ -138,6 +138,14 @@ def cmd_judgments(args: argparse.Namespace) -> int:
     except metrics.RunNotFound as error:
         print(error)
         return 2
+    if args.export:
+        path = Path(args.export)
+        if path.is_dir():
+            path = path / f"judgments_{run['name']}.json"
+        data = judge.export_judgments(conn, run["id"])
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"Wrote {len(data['judgments'])} verdicts to {path}")
+        return 0
     summary = judge.judge_summary(conn, run["id"])
     if args.json:
         _print_json(summary)
@@ -219,6 +227,9 @@ def build_parser() -> argparse.ArgumentParser:
     judgments = commands.add_parser("judgments", help="judge verdicts of a run")
     judgments.add_argument("run", nargs="?", default="latest", help=run_help)
     judgments.add_argument("--json", action="store_true", help="print JSON instead of text")
+    judgments.add_argument(
+        "--export", metavar="PATH", help="write the verdicts to a file (or folder) for ingest"
+    )
     judgments.set_defaults(func=cmd_judgments)
 
     serve = commands.add_parser("serve", help="receive trace events over HTTP (POST /v1/events)")
