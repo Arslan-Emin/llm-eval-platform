@@ -7,9 +7,10 @@ the parsed arguments and returns the process exit code.
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
-from evalplat import __version__, store
+from evalplat import __version__, metrics, report, store
 from evalplat.ingest import ingest_paths
 
 
@@ -20,8 +21,8 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     except FileNotFoundError as error:
         print(f"No such file or folder: {error}")
         return 2
-    for report in reports:
-        print(report.line())
+    for file_report in reports:
+        print(file_report.line())
     added = sum(r.added for r in reports if r.kind == "results")
     events = sum(r.added for r in reports if r.kind == "traces")
     invalid = sum(r.invalid for r in reports)
@@ -29,6 +30,49 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     print(f"\n{added} case result(s) and {events} trace event(s) added to {db_path}")
     # Partly invalid input is reported, but still a failure for scripts and CI.
     return 1 if invalid else 0
+
+
+def _print_json(data: object) -> None:
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+
+def cmd_runs(args: argparse.Namespace) -> int:
+    runs = metrics.list_runs(store.connect(args.db))
+    if args.json:
+        _print_json(runs)
+    else:
+        print(report.format_runs(runs))
+    return 0
+
+
+def cmd_show(args: argparse.Namespace) -> int:
+    conn = store.connect(args.db)
+    try:
+        result = metrics.run_metrics(conn, metrics.resolve_run(conn, args.run)["id"])
+    except metrics.RunNotFound as error:
+        print(error)
+        return 2
+    if args.json:
+        _print_json(result)
+    else:
+        print(report.format_run(result))
+    return 0
+
+
+def cmd_compare(args: argparse.Namespace) -> int:
+    conn = store.connect(args.db)
+    try:
+        baseline = metrics.resolve_run(conn, args.baseline)
+        candidate = metrics.resolve_run(conn, args.candidate)
+    except metrics.RunNotFound as error:
+        print(error)
+        return 2
+    result = metrics.compare_runs(conn, baseline["id"], candidate["id"])
+    if args.json:
+        _print_json(result)
+    else:
+        print(report.format_comparison(result))
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -50,6 +94,22 @@ def build_parser() -> argparse.ArgumentParser:
         "paths", nargs="+", type=Path, help="files or folders (searched recursively)"
     )
     ingest.set_defaults(func=cmd_ingest)
+
+    run_help = "run id, name, unique name prefix, 'latest' or 'previous'"
+    runs = commands.add_parser("runs", help="list eval runs")
+    runs.add_argument("--json", action="store_true", help="print JSON instead of a table")
+    runs.set_defaults(func=cmd_runs)
+
+    show = commands.add_parser("show", help="metrics of one eval run")
+    show.add_argument("run", nargs="?", default="latest", help=run_help)
+    show.add_argument("--json", action="store_true", help="print JSON instead of a table")
+    show.set_defaults(func=cmd_show)
+
+    compare = commands.add_parser("compare", help="compare a candidate run against a baseline")
+    compare.add_argument("baseline", help=run_help)
+    compare.add_argument("candidate", nargs="?", default="latest", help=run_help)
+    compare.add_argument("--json", action="store_true", help="print JSON instead of a table")
+    compare.set_defaults(func=cmd_compare)
     return parser
 
 
