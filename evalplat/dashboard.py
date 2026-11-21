@@ -21,6 +21,7 @@ import streamlit as st
 
 from evalplat import charts, metrics, report, store, traces
 from evalplat.ingest import ingest_paths
+from evalplat.judge import judge_summary
 
 SEED_DIR_ENV = "EVALPLAT_SEED_DIR"
 PAGES: dict[str, Any] = {}
@@ -362,6 +363,8 @@ def page_run() -> None:
                     query_params={"conversation": case["conversation_id"]},
                 )
 
+    _judge_section(conn, m["run"]["id"])
+
     st.subheader("All conversations")
     table = pd.DataFrame(
         [
@@ -397,6 +400,80 @@ def page_run() -> None:
         st.caption(
             "Select a conversation to see its trace (or its transcript, for runs without traces)."
         )
+
+
+def _judge_section(conn: sqlite3.Connection, run_id: int) -> None:
+    summary = judge_summary(conn, run_id)
+    st.subheader("LLM judge")
+    if not summary["judged"]:
+        st.caption("No judge verdicts for this run. Run `evalplat judge <run>` to add them.")
+        return
+    st.caption(
+        f"{summary['judged']} verdicts by {', '.join(summary['judge_models'])} "
+        f"(cost {report.fmt_usd(summary['cost_usd'])}). Each rubric asks one yes/no "
+        "question about one agent reply, with the data the agent had in that turn."
+    )
+    left, right = st.columns(2)
+    with left:
+        st.dataframe(_rate_table(summary["rubrics"], "rubric"), hide_index=True)
+    rag = summary["rag_keyword_vs_judge"]
+    with right:
+        if rag["compared"]:
+            st.metric(
+                "Keyword RAG checks agree with the judge",
+                f"{rag['agree']}/{rag['compared']}",
+                help="Same turns, judged by both the keyword checks and grounded_answer",
+                border=True,
+            )
+    failures = summary["failures"]
+    if rag["disagreements"]:
+        st.markdown("**Where keyword checks and the judge disagree**")
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        "case": d["case_id"],
+                        "repeat": d["repeat_index"] + 1,
+                        "turn": d["turn_index"] + 1,
+                        "keywords": "pass" if d["keyword_passed"] else "fail",
+                        "judge": d["verdict"],
+                        "judge's reason": d["reason"],
+                    }
+                    for d in rag["disagreements"]
+                ]
+            ),
+            hide_index=True,
+        )
+    if failures:
+        st.markdown(f"**Replies the judge failed ({len(failures)})**")
+        table = pd.DataFrame(
+            [
+                {
+                    "case": f["case_id"],
+                    "repeat": f["repeat_index"] + 1,
+                    "turn": f["turn_index"] + 1,
+                    "rubric": f["rubric"],
+                    "reason": f["reason"],
+                    "conversation_id": f["conversation_id"],
+                }
+                for f in failures
+            ]
+        )
+        selection = st.dataframe(
+            table.drop(columns=["conversation_id"]),
+            hide_index=True,
+            on_select="rerun",
+            selection_mode="single-row",
+            key="judge_failures",
+        )
+        st.caption("Select a reply to open its conversation.")
+        if selection.selection.rows:
+            st.switch_page(
+                PAGES["conversation"],
+                query_params={
+                    "conversation": table.iloc[selection.selection.rows[0]]["conversation_id"]
+                },
+            )
 
 
 def _rate_table(rates: dict[str, dict[str, Any]], label: str) -> pd.DataFrame:
@@ -672,6 +749,28 @@ def page_conversation() -> None:
                 }
                 if details:
                     st.json(details, expanded=False)
+
+    verdicts = conn.execute(
+        "SELECT turn_index, rubric, verdict, reason FROM judgments"
+        " WHERE conversation_id = ? ORDER BY turn_index, rubric",
+        (conversation_id,),
+    ).fetchall()
+    if verdicts:
+        st.subheader("LLM judge")
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        "turn": v["turn_index"] + 1,
+                        "rubric": v["rubric"],
+                        "verdict": v["verdict"],
+                        "reason": v["reason"],
+                    }
+                    for v in verdicts
+                ]
+            ),
+            hide_index=True,
+        )
 
     if trace["checks"]:
         st.subheader("Eval checks")
