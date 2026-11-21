@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evalplat"
+dynamic = ["version"]
+description = "Eval and observability platform for LLM agents: trace ingestion, run comparison, LLM-as-judge and a CI regression gate."
+readme = "README.md"
+requires-python = ">=3.11"
+# The core (store, ingest, compare, gate) only uses the standard library, so the
+# regression gate installs in seconds in another project's CI. Heavier parts
+# (dashboard, ingest server, LLM judge) are optional extras added with them.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "ruff==0.17.6"]
+
+[project.scripts]
+evalplat = "evalplat.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "evalplat.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["evalplat*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
