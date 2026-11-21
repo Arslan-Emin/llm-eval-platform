@@ -47,6 +47,6 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - name: Install package with dev tools and dashboard
-        run: pip install -e ".[dev,dashboard,server]"
+        run: pip install -e ".[dev,dashboard,server,judge]"
       - name: Run tests
         run: pytest -q

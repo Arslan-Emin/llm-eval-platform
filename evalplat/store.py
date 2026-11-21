@@ -103,6 +103,36 @@ MIGRATIONS: list[str] = [
     CREATE INDEX events_conversation ON events (conversation_id, timestamp);
     CREATE INDEX events_source_type ON events (source, type);
     """,
+    # 2: LLM judge verdicts, one per (rubric, agent reply)
+    """
+    CREATE TABLE judgments (
+        id                   INTEGER PRIMARY KEY,
+        case_result_id       INTEGER REFERENCES case_results (id) ON DELETE CASCADE,
+        conversation_id      TEXT NOT NULL,
+        turn_index           INTEGER NOT NULL,
+        rubric               TEXT NOT NULL,
+        rubric_version       TEXT NOT NULL,
+        -- Hash of the exact prompt: the same question is never paid for twice, and
+        -- editing a rubric's text automatically makes old verdicts stale.
+        prompt_hash          TEXT NOT NULL,
+        judge_model          TEXT NOT NULL,
+        verdict              TEXT NOT NULL CHECK (verdict IN ('pass', 'fail')),
+        reason               TEXT,
+        input_tokens         INTEGER,
+        cached_input_tokens  INTEGER,
+        output_tokens        INTEGER,
+        cost_usd             REAL,
+        latency_ms           REAL,
+        -- 1 = verdict copied from an identical question judged before (no API call,
+        -- no cost). Repeats of a case often produce the very same reply.
+        cached               INTEGER NOT NULL DEFAULT 0,
+        created_at           TEXT NOT NULL,
+        UNIQUE (case_result_id, turn_index, rubric, judge_model, prompt_hash)
+    );
+    CREATE INDEX judgments_prompt ON judgments (prompt_hash, judge_model);
+    CREATE INDEX judgments_conversation ON judgments (conversation_id, turn_index);
+    CREATE INDEX judgments_case ON judgments (case_result_id);
+    """,
 ]
 
 SCHEMA_VERSION = len(MIGRATIONS)

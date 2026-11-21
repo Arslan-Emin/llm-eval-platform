@@ -45,6 +45,30 @@ dashboard under the source `live`. Posting an event twice is harmless, so client
 can retry. Set `EVALPLAT_INGEST_TOKEN` to require `Authorization: Bearer <token>`.
 The server binds to localhost and is not part of the public demo.
 
+### LLM judge
+
+```bash
+pip install -e ".[judge]"        # needs DEEPSEEK_API_KEY in the environment or .env
+evalplat judge v4-pro --dry-run  # what would be judged, and an upper-bound cost
+evalplat judge v4-pro            # score the run's replies
+evalplat judgments v4-pro        # verdicts, failures, judge vs keyword checks
+```
+
+Keyword checks only see the end state and fixed phrases. The judge
+(`deepseek-v4-pro` in JSON mode, thinking off) answers one yes/no question per agent
+reply, with the data the agent had in that turn, rebuilt from the trace:
+
+| Rubric | Applies to | Question |
+|---|---|---|
+| `grounded_answer` | replies after a knowledge base search | Is every clinic fact supported by the retrieved passages (or does it say it doesn't know)? |
+| `claims_match_actions` | every reply | Is what the reply says about the form true (saved values, submission)? |
+| `confirmation_summary` | replies once every field is filled | Does it show every saved value correctly and ask for confirmation? |
+
+Whether a rubric applies is decided in code, not by the judge. Verdicts are stored
+per reply with the hash of the exact prompt: re-running never pays twice, identical
+questions (a reply repeated word for word across repeats) are sent once, and editing
+a rubric makes its old verdicts stale automatically.
+
 ### Notes
 
 Re-running `ingest` is safe: runs and events that are already stored are skipped.
@@ -62,7 +86,7 @@ Requires Python 3.11+.
 ```bash
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
-pip install -e ".[dev,dashboard,server]"
+pip install -e ".[dev,dashboard,server,judge]"
 pytest
 ruff check . && ruff format --check .
 ```

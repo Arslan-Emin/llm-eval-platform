@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 from evalplat import __version__, metrics, report, store
@@ -75,6 +76,85 @@ def cmd_compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_judge(args: argparse.Namespace) -> int:
+    try:
+        from evalplat import judge
+    except ImportError:
+        print('The judge needs extra packages: pip install "evalplat[judge]"')
+        return 2
+    conn = store.connect(args.db)
+    try:
+        run = metrics.resolve_run(conn, args.run)
+    except metrics.RunNotFound as error:
+        print(error)
+        return 2
+    client = None
+    if not args.dry_run:
+        _load_dotenv()
+        api_key = os.environ.get("DEEPSEEK_API_KEY")
+        if not api_key:
+            print("DEEPSEEK_API_KEY is not set (environment or .env).")
+            return 2
+        client = judge.DeepSeekJudge(api_key, args.model)
+
+    def progress(done: int, total: int) -> None:
+        if done % 25 == 0 or done == total:
+            print(f"  {done}/{total}", flush=True)
+
+    result = judge.run_judge(
+        conn,
+        run["id"],
+        client,
+        model=args.model,
+        rubric_names=args.rubric,
+        limit=args.limit,
+        workers=args.workers,
+        dry_run=args.dry_run,
+        progress=progress,
+    )
+    print(
+        f"Run {run['name']}: {result.planned} rubric checks; {result.already_judged} already "
+        f"judged, {result.reused} answered by an identical earlier question."
+    )
+    print(
+        f"To send to {args.model}: {result.questions} distinct questions, "
+        f"~{result.estimated_input_tokens:,} input tokens, at most "
+        f"{report.fmt_usd(result.estimated_cost_usd)} (peak price, no prompt cache)."
+    )
+    if args.dry_run:
+        return 0
+    print(f"Sent {result.judged}, cost {report.fmt_usd(result.cost_usd)}.")
+    for error in result.errors:
+        print(f"  error: {error}")
+    return 1 if result.errors else 0
+
+
+def cmd_judgments(args: argparse.Namespace) -> int:
+    from evalplat import judge
+
+    conn = store.connect(args.db)
+    try:
+        run = metrics.resolve_run(conn, args.run)
+    except metrics.RunNotFound as error:
+        print(error)
+        return 2
+    summary = judge.judge_summary(conn, run["id"])
+    if args.json:
+        _print_json(summary)
+    else:
+        print(f"Run {run['name']}")
+        print(report.format_judgments(summary))
+    return 0
+
+
+def _load_dotenv() -> None:
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv()
+
+
 def cmd_serve(args: argparse.Namespace) -> int:
     # Imported here: the server needs the optional `server` extra, the rest of the
     # CLI (and the CI regression gate) must work without it.
@@ -124,6 +204,22 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("candidate", nargs="?", default="latest", help=run_help)
     compare.add_argument("--json", action="store_true", help="print JSON instead of a table")
     compare.set_defaults(func=cmd_compare)
+
+    judge = commands.add_parser("judge", help="score a run's replies with the LLM judge")
+    judge.add_argument("run", nargs="?", default="latest", help=run_help)
+    judge.add_argument("--rubric", action="append", help="only this rubric (repeatable)")
+    judge.add_argument("--limit", type=int, help="judge at most this many replies")
+    judge.add_argument("--workers", type=int, default=4, help="parallel API calls")
+    judge.add_argument("--model", default="deepseek-v4-pro", help="judge model")
+    judge.add_argument(
+        "--dry-run", action="store_true", help="only count and estimate the cost, send nothing"
+    )
+    judge.set_defaults(func=cmd_judge)
+
+    judgments = commands.add_parser("judgments", help="judge verdicts of a run")
+    judgments.add_argument("run", nargs="?", default="latest", help=run_help)
+    judgments.add_argument("--json", action="store_true", help="print JSON instead of text")
+    judgments.set_defaults(func=cmd_judgments)
 
     serve = commands.add_parser("serve", help="receive trace events over HTTP (POST /v1/events)")
     serve.add_argument(

@@ -253,3 +253,36 @@ def verdict(comparison: dict[str, Any]) -> str:
         f"{text}\nOne-sided Fisher exact p = {p:.3f}: not significant at {SIGNIFICANCE}; "
         "with this many repeats, a change this size can be noise."
     )
+
+
+def format_judgments(summary: dict[str, Any]) -> str:
+    if not summary["judged"]:
+        return "No judge verdicts for this run yet. Run: evalplat judge <run>"
+    rows = [[name, fmt_rate(rate)] for name, rate in summary["rubrics"].items()]
+    lines = [
+        f"{summary['judged']} verdicts by {', '.join(summary['judge_models'])}, "
+        f"cost {fmt_usd(summary['cost_usd'])}",
+        "",
+        table(["rubric", "passed"], rows),
+    ]
+    rag = summary["rag_keyword_vs_judge"]
+    if rag["compared"]:
+        lines += [
+            "",
+            f"Keyword RAG checks vs judge on the same turns: agree on "
+            f"{rag['agree']}/{rag['compared']}.",
+        ]
+        for d in rag["disagreements"]:
+            keyword = "pass" if d["keyword_passed"] else "fail"
+            lines.append(
+                f"  {d['case_id']} #{d['repeat_index'] + 1} turn {d['turn_index'] + 1}: "
+                f"keywords {keyword}, judge {d['verdict']} - {d['reason']}"
+            )
+    if summary["failures"]:
+        lines += ["", "Replies the judge failed:"]
+        for f in summary["failures"]:
+            lines.append(
+                f"  {f['case_id']} #{f['repeat_index'] + 1} turn {f['turn_index'] + 1} "
+                f"[{f['rubric']}]: {f['reason']}"
+            )
+    return "\n".join(lines)

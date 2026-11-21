@@ -18,6 +18,8 @@ dependencies = []
 dashboard = ["streamlit==1.67.0"]
 # Local HTTP ingestion of live trace events (`evalplat serve`).
 server = ["fastapi==0.165.0", "uvicorn==0.54.0"]
+# LLM judge: DeepSeek through the OpenAI SDK; .env support for the API key.
+judge = ["openai==3.55.1", "python-dotenv==1.2.4"]
 # httpx2 is what FastAPI's TestClient uses.
 dev = ["pytest==9.2.0", "ruff==0.17.6", "httpx2==2.16.2"]
 
