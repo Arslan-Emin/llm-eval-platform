@@ -104,6 +104,27 @@ measured on very few positives; and v2 was fixed using the same labels it is
 evaluated on. Labeling also surfaced an error no check measures: one reply mixed
 a Cyrillic word into Turkish ("телефонla").
 
+### Regression gate
+
+```bash
+evalplat gate evals/results/<baseline>.json evals/results/   # newest run in the folder
+```
+
+Exit code 1 fails the CI job; on GitHub Actions the report also goes to the run's
+summary page. LLMs are not deterministic, so the gate is a hybrid of hard limits
+and statistics:
+
+| Fails | Warns |
+|---|---|
+| any wrong or premature submit, any crashed case | a case that lost one repeat (flaky) |
+| a significant pass-rate drop on the shared cases (one-sided Fisher, p < 0.05) | a smaller, non-significant drop |
+| a case that newly fails in most of its repeats, or a new case that mostly fails | cost or latency up 25% or more; more submits blocked by the code guard |
+
+On the agent's real runs: the fix passes; undoing the fix (75/75 → 72/75, three
+cases each losing one of three repeats, p = 0.12) passes with warnings; switching to
+`deepseek-v4-pro` passes with cost, latency and guard warnings. The gate only uses
+the standard library, so `pip install` in another project's CI takes seconds.
+
 ### Notes
 
 Re-running `ingest` is safe: runs and events that are already stored are skipped.

@@ -185,6 +185,28 @@ def cmd_calibration(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_gate(args: argparse.Namespace) -> int:
+    from evalplat import gate
+
+    rules = gate.GateRules(
+        alpha=args.alpha,
+        max_case_drop=args.max_case_drop,
+        max_cost_increase=args.max_cost_increase,
+        max_latency_increase=args.max_latency_increase,
+    )
+    try:
+        result = gate.run_gate(args.baseline, args.candidate, rules)
+    except gate.GateInputError as error:
+        print(f"Gate input error: {error}")
+        return 2
+    if args.json:
+        _print_json(gate.to_dict(result))
+    else:
+        print(gate.format_text(result))
+    gate.write_step_summary(result)
+    return result.exit_code
+
+
 def _load_dotenv() -> None:
     try:
         from dotenv import load_dotenv
@@ -276,6 +298,25 @@ def build_parser() -> argparse.ArgumentParser:
         "--export", metavar="PATH", help="write the labels to a file or folder"
     )
     calibration.set_defaults(func=cmd_calibration)
+
+    gate = commands.add_parser(
+        "gate", help="fail (exit 1) if a candidate eval run regressed against a baseline"
+    )
+    gate.add_argument("baseline", type=Path, help="baseline results file")
+    gate.add_argument(
+        "candidate", type=Path, help="candidate results file, or a folder (its newest run)"
+    )
+    gate.add_argument("--alpha", type=float, default=0.05, help="significance level")
+    gate.add_argument(
+        "--max-case-drop",
+        type=float,
+        default=0.5,
+        help="fail a case whose pass rate drops by more than this (default 0.5)",
+    )
+    gate.add_argument("--max-cost-increase", type=float, default=0.25, help="warn above this")
+    gate.add_argument("--max-latency-increase", type=float, default=0.25, help="warn above this")
+    gate.add_argument("--json", action="store_true", help="print JSON instead of text")
+    gate.set_defaults(func=cmd_gate)
 
     serve = commands.add_parser("serve", help="receive trace events over HTTP (POST /v1/events)")
     serve.add_argument(
