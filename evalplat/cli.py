@@ -75,6 +75,20 @@ def cmd_compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serve(args: argparse.Namespace) -> int:
+    # Imported here: the server needs the optional `server` extra, the rest of the
+    # CLI (and the CI regression gate) must work without it.
+    try:
+        import uvicorn
+
+        from evalplat.server import create_app
+    except ImportError:
+        print('The ingest server needs extra packages: pip install "evalplat[server]"')
+        return 2
+    uvicorn.run(create_app(args.db), host=args.host, port=args.port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="evalplat",
@@ -110,6 +124,13 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("candidate", nargs="?", default="latest", help=run_help)
     compare.add_argument("--json", action="store_true", help="print JSON instead of a table")
     compare.set_defaults(func=cmd_compare)
+
+    serve = commands.add_parser("serve", help="receive trace events over HTTP (POST /v1/events)")
+    serve.add_argument(
+        "--host", default="127.0.0.1", help="interface to bind (default: local only)"
+    )
+    serve.add_argument("--port", type=int, default=8700)
+    serve.set_defaults(func=cmd_serve)
     return parser
 
 

@@ -48,7 +48,7 @@ Requires Python 3.11+.
 ```bash
 python -m venv .venv
 .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
-pip install -e ".[dev,dashboard]"
+pip install -e ".[dev,dashboard,server]"
 pytest
 ruff check . && ruff format --check .
 ```

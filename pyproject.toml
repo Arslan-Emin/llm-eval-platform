@@ -16,7 +16,10 @@ dependencies = []
 [project.optional-dependencies]
 # Streamlit brings pandas and altair, which the dashboard also uses.
 dashboard = ["streamlit==1.67.0"]
-dev = ["pytest==9.2.0", "ruff==0.17.6"]
+# Local HTTP ingestion of live trace events (`evalplat serve`).
+server = ["fastapi==0.165.0", "uvicorn==0.54.0"]
+# httpx2 is what FastAPI's TestClient uses.
+dev = ["pytest==9.2.0", "ruff==0.17.6", "httpx2==2.16.2"]
 
 [project.scripts]
 evalplat = "evalplat.cli:main"
