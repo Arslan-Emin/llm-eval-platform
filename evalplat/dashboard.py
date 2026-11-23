@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -45,9 +46,27 @@ def _prepare_database(path: str, seed_dir: str | None) -> str:
     return path
 
 
+def setting(name: str) -> str | None:
+    """An environment variable, else a Streamlit secret of the same name (how settings
+    reach an app on Streamlit Community Cloud)."""
+    value = os.environ.get(name)
+    if value:
+        return value
+    try:
+        secret = st.secrets.get(name)
+    except Exception:  # noqa: BLE001 - no secrets file at all is the normal local case
+        return None
+    return str(secret) if secret else None
+
+
 def get_conn() -> sqlite3.Connection:
-    path = _prepare_database(str(store.resolve_db_path()), os.environ.get(SEED_DIR_ENV))
-    return store.connect(path)
+    seed_dir = setting(SEED_DIR_ENV)
+    path = setting(store.DB_PATH_ENV)
+    if path is None and seed_dir:
+        # A seeded demo builds its database in the temp folder: the app's own folder
+        # may not be writable on a hosting service, and the data is rebuilt anyway.
+        path = str(Path(tempfile.gettempdir()) / "evalplat-demo.db")
+    return store.connect(_prepare_database(str(store.resolve_db_path(path)), seed_dir))
 
 
 def theme_mode() -> str | None:
@@ -678,7 +697,7 @@ def page_conversation() -> None:
             f"`{case['run_name']}`: **{status}**"
         )
     duration = sum((t["summary"] or {}).get("duration_ms") or 0 for t in trace["turns"])
-    cols = st.columns(4)
+    cols = st.columns([1, 1, 1.4, 1.4])  # wider tiles for cost and time
     _card(cols[0], "User turns", str(len([t for t in trace["turns"] if t["summary"]])), None, "")
     _card(
         cols[1],
@@ -688,7 +707,7 @@ def page_conversation() -> None:
         "",
         help=f"Tokens in / out: {totals['input_tokens']:,} / {totals['output_tokens']:,}",
     )
-    _card(cols[2], "Cost", report.fmt_usd(totals["cost_usd"]), None, "")
+    _card(cols[2], "Cost", f"${totals['cost_usd']:.4f}", None, "")
     _card(cols[3], "Time in agent turns", report.fmt_seconds(duration), None, "")
 
     spans = sorted(
@@ -833,7 +852,7 @@ LABEL_TEXT = {"pass": "Correct", "fail": "Wrong", "not_applicable": "Question do
 
 
 def read_only() -> bool:
-    return os.environ.get(READ_ONLY_ENV, "").lower() in {"1", "true", "yes"}
+    return (setting(READ_ONLY_ENV) or "").lower() in {"1", "true", "yes"}
 
 
 def page_calibrate() -> None:
@@ -853,16 +872,16 @@ def page_calibrate() -> None:
 
 
 def _label_tab(conn: sqlite3.Connection, labeler: str) -> None:
+    if read_only():
+        labeled = conn.execute("SELECT count(*) FROM labels").fetchone()[0]
+        st.info(
+            f"Labeling is turned off in this demo. {labeled} judge verdicts were labeled by "
+            "the author; the Agreement tab compares them with the judge."
+        )
+        return
     entries = calibration.queue(conn, labeler)
     if not entries:
         st.info("No label queue yet. Create one with `evalplat label-sample`.")
-        return
-    if read_only():
-        done = sum(e["label"] is not None for e in calibration.queue(conn, labeler))
-        st.info(
-            f"Labeling is turned off in this demo. {done} of {len(entries)} replies were "
-            "labeled by the author; see the Agreement tab."
-        )
         return
 
     done = sum(e["label"] is not None for e in entries)

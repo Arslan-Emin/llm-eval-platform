@@ -1,0 +1,4 @@
+# Dependencies for the dashboard on Streamlit Community Cloud. The app imports
+# the evalplat package straight from the repository; see pyproject.toml for the
+# full package and its optional extras.
+streamlit==1.67.0
