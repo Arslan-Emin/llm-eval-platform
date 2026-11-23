@@ -12,6 +12,7 @@ Real eval runs and traces from
 | `results/20261121-152221_deepseek-flash.json` | After fix 3, 30 cases x 3, 90/90 |
 | `results/20261121-165646_deepseek-v4-pro.json` | Same suite on `deepseek-v4-pro`, thinking off: 89/90 |
 | `results/20261121-165926_deepseek-flash.json` | Same suite on `deepseek-flash` with thinking on: 90/90 |
+| `results/20261123-105257_deepseek-flash_simulated.json` | 12 simulated-user personas x 3 (`evals/simulate.py`): 32/36 |
 | `traces/eval_*.jsonl` | Full trace events of every run since tracing was added (the first two predate it) |
 | `traces/2026-11-*.jsonl` | Traces of the app itself; message content is not logged there |
 | `judgments/judgments_*.json` | LLM judge verdicts (`deepseek-v4-pro`) for the last three runs |

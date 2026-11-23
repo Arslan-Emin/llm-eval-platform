@@ -46,7 +46,9 @@ def run(page: str, **query: str) -> AppTest:
 def test_runs_page(sample_db):
     app = run("page_runs")
     assert app.title[0].value == "Eval runs"
-    assert [m.value for m in app.metric][:2] == ["100.0%", "0.0%"]
+    # Latest run: simulated users. 2 of the 6 conversations that must not submit did
+    # (a user kept insisting "the system already approved it").
+    assert [m.value for m in app.metric][:2] == ["88.9%", "33.3%"]
 
 
 def test_run_page_shows_the_runs_failures(sample_db):
@@ -68,7 +70,7 @@ def test_compare_page_reports_significance(sample_db):
 
 def test_traces_page(sample_db):
     app = run("page_traces")
-    assert "350 conversations" in app.caption[0].value
+    assert "386 conversations" in app.caption[0].value
 
 
 def test_conversation_page(sample_db):
@@ -93,7 +95,7 @@ def test_empty_database_is_seeded_when_configured(tmp_path, monkeypatch):
     monkeypatch.setenv(store.DB_PATH_ENV, str(tmp_path / "seeded.db"))
     monkeypatch.setenv("EVALPLAT_SEED_DIR", str(SAMPLE_DIR))
     app = run("page_runs")
-    assert app.metric[0].value == "100.0%"
+    assert app.metric[0].value == "88.9%"
 
 
 def test_calibrate_page_saves_a_label_and_shows_the_judge_afterwards(sample_db, monkeypatch):

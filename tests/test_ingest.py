@@ -139,7 +139,7 @@ def test_sample_data_matches_the_numbers_reported_by_the_agent_project(conn):
     assert all(r.invalid == 0 for r in reports)
 
     runs = {r["name"]: r for r in conn.execute("SELECT * FROM runs")}
-    assert len(runs) == 6
+    assert len(runs) == 7
     cases = dict(
         conn.execute(
             "SELECT r.name, count(*) FROM case_results c"
@@ -175,7 +175,7 @@ def test_cli_ingest_is_idempotent(tmp_path, capsys):
     assert main(["--db", db, "ingest", str(SAMPLE_DIR / "results")]) == 0
     assert main(["--db", db, "ingest", str(SAMPLE_DIR / "results")]) == 0
     out = capsys.readouterr().out
-    assert "498 case result(s)" in out
+    assert "534 case result(s)" in out
     assert "0 case result(s)" in out
 
 

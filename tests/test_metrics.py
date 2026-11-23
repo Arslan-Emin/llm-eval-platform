@@ -57,8 +57,8 @@ def test_resolve_run(sample_conn):
     assert metrics.resolve_run(sample_conn, "baseline")["id"] == 1  # part of the name
     assert metrics.resolve_run(sample_conn, "152221")["id"] == 4
     assert metrics.resolve_run(sample_conn, "v4-pro")["id"] == 5
-    assert metrics.resolve_run(sample_conn, "latest")["id"] == 6
-    assert metrics.resolve_run(sample_conn, "previous")["id"] == 5
+    assert metrics.resolve_run(sample_conn, "latest")["id"] == 7
+    assert metrics.resolve_run(sample_conn, "previous")["id"] == 6
     with pytest.raises(metrics.RunNotFound, match="several runs"):
         metrics.resolve_run(sample_conn, "20261119")
     with pytest.raises(metrics.RunNotFound):
@@ -72,9 +72,9 @@ def test_metrics_agree_with_the_summary_written_by_the_eval_runner(sample_conn):
         assert m["cases"]["passed"] == summary["cases"]["passed"]
         assert m["cases"]["total"] == summary["cases"]["total"]
         for ours, theirs in [
-            (m["checks"]["field"], summary["field_accuracy"]),
-            (m["checks"]["rag"], summary["rag_accuracy"]),
-            (m["checks"]["tool"], summary["tool_use"]),
+            (m["checks"].get("field", metrics.rate(0, 0)), summary["field_accuracy"]),
+            (m["checks"].get("rag", metrics.rate(0, 0)), summary["rag_accuracy"]),
+            (m["checks"].get("tool", metrics.rate(0, 0)), summary["tool_use"]),
             (m["wrong_submit"], summary["wrong_submit_rate"]),
             (m["missed_submit"], summary["missed_submit_rate"]),
         ]:
@@ -171,11 +171,11 @@ def test_cli_compare_and_show(tmp_path, capsys):
     assert "Fisher exact p = 0.122" in out
     assert "missing_last_name  improved" in out
 
-    assert main(["--db", db, "show", "latest"]) == 0
+    assert main(["--db", db, "show", "152221"]) == 0
     assert "95% confidence interval for the pass rate: 95.9% - 100.0%" in capsys.readouterr().out
 
     assert main(["--db", db, "runs", "--json"]) == 0
-    assert len(json.loads(capsys.readouterr().out)) == 6
+    assert len(json.loads(capsys.readouterr().out)) == 7
 
     assert main(["--db", db, "show", "nope"]) == 2
 
