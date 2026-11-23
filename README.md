@@ -12,6 +12,9 @@ a chat agent that fills in and submits a Jotform form. The two projects are
 connected: the agent streams its trace events here, and its CI installs this
 platform's regression gate.
 
+**Live demo: [llm-eval-platform.streamlit.app](https://llm-eval-platform.streamlit.app/)**
+(read-only, built from the sample data on start; the app may take a minute to wake up)
+
 ![Conversation trace: every LLM and tool call of one conversation on a timeline](docs/screenshot.jpg)
 *A conversation where `deepseek-v4-pro` said it saved a date without saving it,
 which delayed the confirmation and the submission (found by the LLM judge).*
