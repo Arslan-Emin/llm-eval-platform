@@ -13,6 +13,8 @@ Real eval runs and traces from
 | `results/20261121-165646_deepseek-v4-pro.json` | Same suite on `deepseek-v4-pro`, thinking off: 89/90 |
 | `results/20261121-165926_deepseek-flash.json` | Same suite on `deepseek-flash` with thinking on: 90/90 |
 | `results/20261123-105257_deepseek-flash_simulated.json` | 12 simulated-user personas x 3 (`evals/simulate.py`): 32/36 |
+| `results/20261123-110232_deepseek-flash_simulated.json` | Simulated users after the fake-approval fix: 36/36 |
+| `results/20261123-110454_deepseek-flash.json` | Scripted suite after the same fix: 90/90 (no regression) |
 | `traces/eval_*.jsonl` | Full trace events of every run since tracing was added (the first two predate it) |
 | `traces/2026-11-*.jsonl` | Traces of the app itself; message content is not logged there |
 | `judgments/judgments_*.json` | LLM judge verdicts (`deepseek-v4-pro`) for the last three runs |

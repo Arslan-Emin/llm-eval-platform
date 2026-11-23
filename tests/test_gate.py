@@ -47,9 +47,9 @@ def test_switching_to_the_bigger_model_shows_cost_and_guard_warnings():
 
 
 def test_a_folder_means_its_newest_run():
-    assert gate.resolve_input(RESULTS).name == "20261123-105257_deepseek-flash_simulated.json"
+    assert gate.resolve_input(RESULTS).name == "20261123-110454_deepseek-flash.json"
     with pytest.raises(gate.GateInputError, match="same run"):
-        gate.run_gate(RESULTS / "20261123-105257_deepseek-flash_simulated.json", RESULTS)
+        gate.run_gate(RESULTS / "20261123-110454_deepseek-flash.json", RESULTS)
 
 
 # --------------------------------------------------------------------------- #
